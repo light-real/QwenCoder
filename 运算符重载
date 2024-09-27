@@ -1,0 +1,68 @@
+#include<iostream>
+#include<string>
+using namespace std;
+
+class Person{
+	friend void test01();
+	friend ostream & operator <<(ostream &cout,Person &p);
+public:
+	Person(){
+		
+	}
+	Person(int age){
+		this->age = new int(age); //将年龄开辟在堆区 
+	}
+	string name;
+	
+	//赋值运算符重载
+	Person & operator =(Person &p){
+		if(age != NULL){  //先判断是否有其他属性在堆区，如果有，先进行释放，再来进行深拷贝 
+			delete age;
+			age = NULL;
+		}
+		name = p.name;
+		lover = p.lover;
+		age = new int(*p.age);  //通过深拷贝，来解决浅拷贝重复释放的问题 
+		return *this;
+	}
+	
+	
+	//析构函数
+	~Person(){
+		if(age != NULL){
+			delete age;
+			age = NULL;
+		}
+	} 
+	//前置++运算符重载
+	
+	//后置++运算符重载 
+private:
+	string lover;
+	int *age;   //通过指针来接收年龄 
+};
+
+ostream & operator <<(ostream &cout,Person &p){
+	cout<<"name is "<<p.name<<endl;
+	cout<<"lover is "<<p.lover<<endl<<"aege is "<<*p.age<<endl;
+	return cout;
+}
+
+
+
+void test01(){
+	Person p;
+	p.name = "leon";
+	p.lover = "LL";
+	*p.age = 22;
+	
+	Person p1 = p;
+	cout<<p1<<endl;
+	
+//	cout<<p<<endl; 
+}
+
+int main(){
+	test01();
+	return 0;
+}
