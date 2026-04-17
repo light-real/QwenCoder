@@ -1,9 +1,9 @@
-<view class="container">
+Ôªø<view class="container">
   <view class="header">
     <view class="header-title">Stock Trading</view>
     <view class="total-assets">
       <view class="assets-label">Cash Balance</view>
-      <view class="assets-value">Å0Ñ6{{userData.cash}}</view>
+      <view class="assets-value">{{userData.cash}}</view>
     </view>
     <view class="profit-info">
       <text>Available | Updated {{currentTime}}</text>
@@ -20,7 +20,7 @@
             <view class="stock-code">{{item.code}} - {{item.industry}}</view>
           </view>
           <view class="stock-price">
-            <view class="price">Å0Ñ6{{item.currentPrice}}</view>
+            <view class="price">{{item.currentPrice}}</view>
             <view class="change {{item.change >= 0 ? 'change-up' : 'change-down'}}">
               {{item.change >= 0 ? '+' : ''}}{{item.change}}%
             </view>

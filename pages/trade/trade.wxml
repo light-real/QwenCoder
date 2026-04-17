@@ -5,9 +5,31 @@
       <view class="stock-code">{{stock.code}} - {{stock.industry}}</view>
     </view>
     <view class="stock-price">
-      <view class="current-price">¥{{stock.currentPrice}}</view>
+      <view class="current-price">{{stock.currentPrice}}</view>
       <view class="change {{stock.change >= 0 ? 'change-up' : 'change-down'}}">
         {{stock.change >= 0 ? '+' : ''}}{{stock.change}}%
+      </view>
+    </view>
+  </view>
+
+  <view class="kline-container">
+    <view class="kline-header">
+      <view class="kline-title">K Line Chart</view>
+      <view class="kline-range">30 Days</view>
+    </view>
+    <canvas 
+      canvas-id="klineCanvas" 
+      class="kline-canvas"
+      bindtouchstart="onTouchKLine"
+      bindtouchmove="onTouchKLine"
+    ></canvas>
+    <view class="kline-info" wx:if="{{klineInfo}}">
+      <view class="kline-date">{{klineInfo.date}}</view>
+      <view class="kline-detail">
+        <view class="kline-item">O: {{klineInfo.open}}</view>
+        <view class="kline-item">H: {{klineInfo.high}}</view>
+        <view class="kline-item">L: {{klineInfo.low}}</view>
+        <view class="kline-item">C: {{klineInfo.close}}</view>
       </view>
     </view>
   </view>
@@ -45,15 +67,15 @@
       </view>
       <view class="info-row">
         <text class="info-label">Current Price</text>
-        <text class="info-value">¥{{stock.currentPrice}}</text>
+        <text class="info-value">{{stock.currentPrice}}</text>
       </view>
       <view class="info-row">
         <text class="info-label">Fees</text>
-        <text class="info-value">¥{{commission}}</text>
+        <text class="info-value">{{commission}}</text>
       </view>
       <view class="info-row total">
         <text class="info-label">{{tradeType === 'buy' ? 'Total Cost' : 'Total Amount'}}</text>
-        <text class="info-value primary">¥{{totalCost}}</text>
+        <text class="info-value primary">{{totalCost}}</text>
       </view>
     </view>
 

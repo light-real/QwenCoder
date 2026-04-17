@@ -13,8 +13,8 @@
   </view>
 
   <view class="history-list">
-    <block wx:if="{{history.length > 0}}">
-      <view wx:for="{{history}}" wx:key="index"
+    <block wx:if="{{filteredHistory.length > 0}}">
+      <view wx:for="{{filteredHistory}}" wx:key="index"
             class="history-item {{item.type}}">
         <view class="history-left">
           <view class="history-type {{item.type}}">
@@ -30,18 +30,18 @@
           </view>
           <view class="history-detail">
             <text class="detail-label">Price:</text>
-            <text class="detail-value">¥{{item.price}}</text>
+            <text class="detail-value">{{item.price}}</text>
           </view>
           <view class="history-detail">
             <text class="detail-label">Amount:</text>
-            <text class="detail-value">¥{{item.amount}}</text>
+            <text class="detail-value">{{item.amount}}</text>
           </view>
         </view>
         <view class="history-right">
           <view class="history-time">{{item.time}}</view>
           <view wx:if="{{item.profit !== undefined}}" 
                 class="history-profit {{item.profit >= 0 ? 'profit-up' : 'profit-down'}}">
-            {{item.profit >= 0 ? '+' : ''}}¥{{item.profit}}
+            {{item.profit >= 0 ? '+' : ''}}{{item.profit}}
           </view>
         </view>
       </view>

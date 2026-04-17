@@ -7,7 +7,7 @@
     </view>
     <view class="my-profit">
       <view class="profit-amount {{profit >= 0 ? 'profit-up' : 'profit-down'}}">
-        {{profit >= 0 ? '+' : ''}}¥{{profit}}
+        {{profit >= 0 ? '+' : ''}}{{profit}}
       </view>
       <view class="profit-rate {{profit >= 0 ? 'profit-up' : 'profit-down'}}">
         Return: {{profitRate}}%
@@ -23,14 +23,14 @@
       </view>
       <view class="rank-info">
         <view class="rank-name">{{item.name}}</view>
-        <view class="rank-assets">Assets: ¥{{item.assets}}</view>
+        <view class="rank-assets">Assets: {{item.assets}}</view>
       </view>
       <view class="rank-profit">
         <view class="profit-text {{item.profit >= 0 ? 'profit-up' : 'profit-down'}}">
-          {{item.profit >= 0 ? '+' : ''}}¥{{item.profit}}
+          {{item.profit >= 0 ? '+' : ''}}{{item.profit}}
         </view>
         <view class="profit-percent {{item.profit >= 0 ? 'profit-up' : 'profit-down'}}">
-          {{item.profit >= 0 ? '+' : ''}}{{(item.profit / item.initialAssets * 100).toFixed(2)}}%
+          {{item.profit >= 0 ? '+' : ''}}{{item.profitRate}}%
         </view>
       </view>
     </view>

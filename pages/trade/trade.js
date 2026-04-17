@@ -12,6 +12,8 @@ Page({
     totalCost: 0,
     commission: 0,
     canTrade: false,
+    klineData: [],
+    klineInfo: null,
   },
 
   onLoad(options) {
@@ -22,11 +24,14 @@ Page({
     const existingStock = userData.stocks.find(s => s.code === code);
     const maxQuantity = existingStock ? existingStock.quantity : Math.floor(userData.cash / stock.currentPrice);
     
+    const klineData = stockUtil.generateKLineData(code, 30);
+    
     this.setData({
       stock,
       userData,
       maxQuantity,
       quantity: 0,
+      klineData: klineData,
     });
   },
 
@@ -41,6 +46,120 @@ Page({
     });
     
     this.calculateCost();
+  },
+
+  onReady() {
+    setTimeout(() => {
+      this.drawKLine();
+    }, 200);
+  },
+
+  drawKLine() {
+    const klineData = this.data.klineData;
+    if (!klineData || klineData.length === 0) {
+      console.log('No kline data');
+      return;
+    }
+    
+    const ctx = wx.createCanvasContext('klineCanvas', this);
+    
+    wx.getSystemInfo({
+      success: (sysInfo) => {
+        const width = sysInfo.windowWidth;
+        const height = 300;
+        const padding = { top: 20, right: 20, bottom: 40, left: 60 };
+        const chartWidth = width - padding.left - padding.right;
+        const chartHeight = height - padding.top - padding.bottom;
+        
+        const prices = klineData.map(d => Math.max(d.high, d.low));
+        const maxPrice = Math.max(...prices);
+        const minPrice = Math.min(...prices);
+        const priceRange = maxPrice - minPrice || 1;
+        
+        const candleWidth = chartWidth / klineData.length * 0.6;
+        const gap = chartWidth / klineData.length * 0.4;
+        
+        ctx.setFillStyle('#18181b');
+        ctx.fillRect(0, 0, width, height);
+        
+        for (let i = 0; i <= 4; i++) {
+          const y = padding.top + (chartHeight / 4) * i;
+          ctx.setStrokeStyle('#3f3f46');
+          ctx.setLineWidth(1);
+          ctx.beginPath();
+          ctx.moveTo(padding.left, y);
+          ctx.lineTo(width - padding.right, y);
+          ctx.stroke();
+          
+          const price = maxPrice - (priceRange / 4) * i;
+          ctx.setFillStyle('#71717a');
+          ctx.setFontSize(10);
+          ctx.setTextAlign('right');
+          ctx.fillText(price.toFixed(2), padding.left - 5, y + 4);
+        }
+        
+        for (let i = 0; i < klineData.length; i++) {
+          if (i % 5 === 0) {
+            const x = padding.left + i * (candleWidth + gap) + candleWidth / 2;
+            ctx.setFillStyle('#71717a');
+            ctx.setFontSize(10);
+            ctx.setTextAlign('center');
+            ctx.fillText(klineData[i].date, x, height - 10);
+          }
+          
+          const d = klineData[i];
+          const x = padding.left + i * (candleWidth + gap) + gap / 2;
+          
+          const isUp = d.close >= d.open;
+          const color = isUp ? '#22c55e' : '#ef4444';
+          
+          const openY = padding.top + chartHeight - ((d.open - minPrice) / priceRange * chartHeight);
+          const closeY = padding.top + chartHeight - ((d.close - minPrice) / priceRange * chartHeight);
+          const highY = padding.top + chartHeight - ((d.high - minPrice) / priceRange * chartHeight);
+          const lowY = padding.top + chartHeight - ((d.low - minPrice) / priceRange * chartHeight);
+          
+          ctx.setStrokeStyle(color);
+          ctx.setLineWidth(1);
+          ctx.beginPath();
+          ctx.moveTo(x + candleWidth / 2, highY);
+          ctx.lineTo(x + candleWidth / 2, lowY);
+          ctx.stroke();
+          
+          const bodyTop = Math.min(openY, closeY);
+          const bodyHeight = Math.max(Math.abs(closeY - openY), 2);
+          
+          ctx.setFillStyle(color);
+          ctx.fillRect(x, bodyTop, candleWidth, bodyHeight);
+        }
+        
+        ctx.draw();
+      }
+    });
+  },
+
+  onTouchKLine(e) {
+    const klineData = this.data.klineData;
+    if (!klineData || klineData.length === 0) return;
+    
+    const x = e.touches[0].x;
+    
+    wx.getSystemInfo({
+      success: (sysInfo) => {
+        const width = sysInfo.windowWidth;
+        const padding = { left: 60, right: 20 };
+        const chartWidth = width - padding.left - padding.right;
+        const candleWidth = chartWidth / klineData.length * 0.6;
+        const gap = chartWidth / klineData.length * 0.4;
+        
+        const index = Math.floor((x - padding.left) / (candleWidth + gap));
+        
+        if (index >= 0 && index < klineData.length) {
+          this.setData({
+            klineInfo: klineData[index],
+          });
+        }
+      }
+    });
   },
 
   switchTradeType(e) {
@@ -95,11 +214,11 @@ Page({
   },
 
   confirmTrade() {
-    const { stock, quantity, tradeType, totalCost, userData } = this.data;
+    const { stock, quantity, tradeType, totalCost } = this.data;
     
     if (quantity <= 0) {
       wx.showToast({
-        title: '请输入数量',
+        title: 'Enter quantity',
         icon: 'none',
       });
       return;
@@ -107,15 +226,18 @@ Page({
     
     if (!this.data.canTrade) {
       wx.showToast({
-        title: tradeType === 'buy' ? '余额不足' : '数量不足',
+        title: tradeType === 'buy' ? 'Insufficient balance' : 'Insufficient shares',
         icon: 'none',
       });
       return;
     }
     
+    const action = tradeType === 'buy' ? 'buy' : 'sell';
+    const msg = `Confirm ${action} ${quantity} shares of ${stock.name}?`;
+    
     wx.showModal({
-      title: '确认交易',
-      content: `确定要${tradeType === 'buy' ? '买入' : '卖出'} ${stock.name} ${quantity}股吗？`,
+      title: 'Confirm Trade',
+      content: msg,
       success: (res) => {
         if (res.confirm) {
           this.executeTrade(stock, quantity, tradeType, totalCost);
@@ -135,11 +257,11 @@ Page({
       if (existingIndex > -1) {
         const existing = userData.stocks[existingIndex];
         const totalQuantity = existing.quantity + quantity;
-        const totalCost = existing.cost + stock.currentPrice * quantity;
+        const newCost = existing.cost + stock.currentPrice * quantity;
         userData.stocks[existingIndex] = {
           ...existing,
           quantity: totalQuantity,
-          cost: totalCost,
+          cost: newCost,
           currentPrice: stock.currentPrice,
         };
       } else {
@@ -196,7 +318,7 @@ Page({
     app.updateUserData(userData);
     
     wx.showToast({
-      title: '交易成功',
+      title: 'Trade Success',
       icon: 'success',
       duration: 1500,
     });

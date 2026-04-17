@@ -1,14 +1,14 @@
-<view class="container">
+﻿<view class="container">
   <view class="header">
     <view class="header-title">My Portfolio</view>
     <view class="total-assets">
       <view class="assets-label">Total Assets</view>
-      <view class="assets-value">?{{totalAssets}}</view>
+      <view class="assets-value">{{totalAssets}}</view>
     </view>
     <view class="profit-info">
       <text>Profit: </text>
       <text class="{{totalProfit >= 0 ? 'profit-positive' : 'profit-negative'}}">
-        {{totalProfit >= 0 ? '+' : ''}}?{{totalProfit}} ({{profitRate}}%)
+        {{totalProfit >= 0 ? '+' : ''}}{{totalProfit}} ({{profitRate}}%)
       </text>
     </view>
   </view>
@@ -16,11 +16,11 @@
   <view class="assets-breakdown">
     <view class="breakdown-item">
       <view class="breakdown-label">Cash Balance</view>
-      <view class="breakdown-value">?{{userData.cash}}</view>
+      <view class="breakdown-value">{{userData.cash}}</view>
     </view>
     <view class="breakdown-item">
       <view class="breakdown-label">Market Value</view>
-      <view class="breakdown-value">?{{totalAssets - userData.cash}}</view>
+      <view class="breakdown-value">{{totalAssets}}</view>
     </view>
   </view>
 
@@ -43,17 +43,16 @@
             </view>
             <view class="holding-row">
               <text class="holding-label">Cost</text>
-              <text class="holding-value">?{{(item.cost / item.quantity).toFixed(2)}}</text>
+              <text class="holding-value">{{item.cost}}</text>
             </view>
           </view>
           <view class="stock-price">
-            <view class="price">?{{item.currentPrice}}</view>
+            <view class="price">{{item.currentPrice}}</view>
             <view class="change {{item.change >= 0 ? 'change-up' : 'change-down'}}">
               {{item.change >= 0 ? '+' : ''}}{{item.change}}%
             </view>
             <view class="profit">
-              {{(item.quantity * item.currentPrice - item.cost) >= 0 ? 'Gain' : 'Loss'}}
-              ?{{(item.quantity * item.currentPrice - item.cost).toFixed(2)}}
+              {{item.change >= 0 ? 'Gain' : 'Loss'}}
             </view>
           </view>
         </view>

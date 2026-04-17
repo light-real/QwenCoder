@@ -1,4 +1,4 @@
-const app = getApp();
+﻿const app = getApp();
 const stockUtil = require('../../utils/stock.js');
 
 Page({
@@ -8,6 +8,10 @@ Page({
     totalAssets: 0,
     totalProfit: 0,
     profitRate: 0,
+  },
+
+  onLoad() {
+    this.loadData();
   },
 
   onShow() {
@@ -25,7 +29,7 @@ Page({
       }
     });
     
-    const totalAssets = userData.cash + userData.stocks.reduce((sum, s) => sum + s.quantity * s.currentPrice, 0);
+    const totalAssets = userData.cash + userData.stocks.reduce((sum, s) => sum + s.quantity * (s.currentPrice || 0), 0);
     const totalProfit = totalAssets - app.globalData.initialMoney;
     const profitRate = ((totalProfit / app.globalData.initialMoney) * 100).toFixed(2);
     

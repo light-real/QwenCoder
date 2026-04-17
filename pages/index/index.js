@@ -1,4 +1,4 @@
-const app = getApp();
+﻿const app = getApp();
 const stockUtil = require('../../utils/stock.js');
 const dateUtil = require('../../utils/date.js');
 

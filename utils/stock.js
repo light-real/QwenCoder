@@ -1,14 +1,14 @@
 const stockList = [
-  { code: '600519', name: '贵州茅台', basePrice: 1800, industry: '白酒' },
-  { code: '000858', name: '五粮液', basePrice: 150, industry: '白酒' },
-  { code: '601318', name: '中国平安', basePrice: 45, industry: '保险' },
-  { code: '600036', name: '招商银行', basePrice: 35, industry: '银行' },
-  { code: '000001', name: '平安银行', basePrice: 12, industry: '银行' },
-  { code: '600276', name: '恒瑞医药', basePrice: 28, industry: '医药' },
-  { code: '000333', name: '美的集团', basePrice: 55, industry: '家电' },
-  { code: '600887', name: '伊利股份', basePrice: 25, industry: '食品' },
-  { code: '002594', name: '比亚迪', basePrice: 180, industry: '汽车' },
-  { code: '300750', name: '宁德时代', basePrice: 180, industry: '新能源' },
+  { code: '600519', name: 'Kweichow Moutai', basePrice: 1800, industry: 'Liquor' },
+  { code: '000858', name: 'Wuliangye Yibin', basePrice: 150, industry: 'Liquor' },
+  { code: '601318', name: 'Ping An Insurance', basePrice: 45, industry: 'Insurance' },
+  { code: '600036', name: 'China Merchants Bank', basePrice: 35, industry: 'Banking' },
+  { code: '000001', name: 'Ping An Bank', basePrice: 12, industry: 'Banking' },
+  { code: '600276', name: 'Hengrui Medicine', basePrice: 28, industry: 'Pharma' },
+  { code: '000333', name: 'Midea Group', basePrice: 55, industry: 'Appliance' },
+  { code: '600887', name: 'Inner Mongolia Yili', basePrice: 25, industry: 'Food' },
+  { code: '002594', name: 'BYD', basePrice: 180, industry: 'Auto' },
+  { code: '300750', name: 'CATL', basePrice: 180, industry: 'New Energy' },
 ];
 
 const marketStocks = stockList.map(stock => {
@@ -35,6 +35,42 @@ function updateMarketStocks() {
 
 function getStockByCode(code) {
   return marketStocks.find(stock => stock.code === code);
+}
+
+function generateKLineData(code, days = 30) {
+  const stock = getStockByCode(code);
+  if (!stock) return [];
+  
+  const data = [];
+  let price = stock.basePrice;
+  const now = new Date();
+  
+  for (let i = days; i > 0; i--) {
+    const date = new Date(now);
+    date.setDate(date.getDate() - i);
+    
+    const open = price;
+    const changePercent = (Math.random() - 0.5) * 0.08;
+    const close = open * (1 + changePercent);
+    
+    const high = Math.max(open, close) * (1 + Math.random() * 0.02);
+    const low = Math.min(open, close) * (1 - Math.random() * 0.02);
+    
+    const volume = Math.floor(Math.random() * 10000000) + 1000000;
+    
+    data.push({
+      date: `${date.getMonth() + 1}/${date.getDate()}`,
+      open: parseFloat(open.toFixed(2)),
+      close: parseFloat(close.toFixed(2)),
+      high: parseFloat(high.toFixed(2)),
+      low: parseFloat(low.toFixed(2)),
+      volume: volume,
+    });
+    
+    price = close;
+  }
+  
+  return data;
 }
 
 function buyStock(code, quantity, price) {
@@ -88,6 +124,7 @@ module.exports = {
   marketStocks,
   updateMarketStocks,
   getStockByCode,
+  generateKLineData,
   buyStock,
   sellStock,
   calculateProfit,
