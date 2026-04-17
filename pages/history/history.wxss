@@ -1,0 +1,125 @@
+.filter-section {
+  display: flex;
+  gap: 20rpx;
+  padding: 20rpx;
+  margin-bottom: 20rpx;
+}
+
+.filter-btn {
+  flex: 1;
+  padding: 20rpx;
+  text-align: center;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  background: #1a1a2e;
+  color: #888;
+}
+
+.filter-btn.active {
+  background: linear-gradient(135deg, #e94560 0%, #ff6b6b 100%);
+  color: #fff;
+}
+
+.history-list {
+  padding: 0 20rpx;
+}
+
+.history-item {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-radius: 16rpx;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+  display: flex;
+  justify-content: space-between;
+}
+
+.history-left {
+  flex: 1;
+}
+
+.history-type {
+  display: inline-block;
+  padding: 6rpx 16rpx;
+  border-radius: 8rpx;
+  font-size: 24rpx;
+  margin-bottom: 10rpx;
+}
+
+.history-type.buy {
+  background: rgba(242, 54, 69, 0.1);
+  color: #f23645;
+}
+
+.history-type.sell {
+  background: rgba(8, 145, 178, 0.1);
+  color: #0891b2;
+}
+
+.history-name {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #fff;
+  margin-bottom: 8rpx;
+}
+
+.history-code {
+  font-size: 24rpx;
+  color: #888;
+}
+
+.history-middle {
+  flex: 1.5;
+  margin: 0 20rpx;
+}
+
+.history-detail {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8rpx;
+  font-size: 26rpx;
+}
+
+.detail-label {
+  color: #888;
+}
+
+.detail-value {
+  color: #fff;
+}
+
+.history-right {
+  text-align: right;
+}
+
+.history-time {
+  font-size: 24rpx;
+  color: #888;
+  margin-bottom: 10rpx;
+}
+
+.history-profit {
+  font-size: 28rpx;
+  font-weight: bold;
+}
+
+.history-profit.profit-up {
+  color: #f23645;
+}
+
+.history-profit.profit-down {
+  color: #0891b2;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 100rpx 0;
+  color: #888;
+  font-size: 32rpx;
+}
+
+.empty-hint {
+  display: block;
+  margin-top: 20rpx;
+  font-size: 28rpx;
+  color: #666;
+}

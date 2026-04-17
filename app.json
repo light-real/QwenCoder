@@ -1,0 +1,49 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/trade/trade",
+    "pages/portfolio/portfolio",
+    "pages/history/history",
+    "pages/rank/rank"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#1a1a2e",
+    "navigationBarTitleText": "Stock Trading",
+    "navigationBarTextStyle": "white"
+  },
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#e94560",
+    "backgroundColor": "#1a1a2e",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "Market",
+        "iconPath": "images/market.png",
+        "selectedIconPath": "images/market-active.png"
+      },
+      {
+        "pagePath": "pages/portfolio/portfolio",
+        "text": "Portfolio",
+        "iconPath": "images/portfolio.png",
+        "selectedIconPath": "images/portfolio-active.png"
+      },
+      {
+        "pagePath": "pages/history/history",
+        "text": "History",
+        "iconPath": "images/history.png",
+        "selectedIconPath": "images/history-active.png"
+      },
+      {
+        "pagePath": "pages/rank/rank",
+        "text": "Rank",
+        "iconPath": "images/rank.png",
+        "selectedIconPath": "images/rank-active.png"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

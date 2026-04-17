@@ -1,0 +1,66 @@
+<view class="container">
+  <view class="header">
+    <view class="stock-header">
+      <view class="stock-name">{{stock.name}}</view>
+      <view class="stock-code">{{stock.code}} - {{stock.industry}}</view>
+    </view>
+    <view class="stock-price">
+      <view class="current-price">¥{{stock.currentPrice}}</view>
+      <view class="change {{stock.change >= 0 ? 'change-up' : 'change-down'}}">
+        {{stock.change >= 0 ? '+' : ''}}{{stock.change}}%
+      </view>
+    </view>
+  </view>
+
+  <view class="trade-section">
+    <view class="trade-type">
+      <view class="type-btn {{tradeType === 'buy' ? 'active-buy' : ''}}" 
+            bindtap="switchTradeType" data-type="buy">Buy</view>
+      <view class="type-btn {{tradeType === 'sell' ? 'active-sell' : ''}}" 
+            bindtap="switchTradeType" data-type="sell">Sell</view>
+    </view>
+
+    <view class="quantity-section">
+      <view class="label">Quantity (lots)</view>
+      <view class="input-wrapper">
+        <input type="number" 
+               value="{{quantity}}" 
+               bindinput="inputQuantity" 
+               placeholder="Enter quantity"
+               class="quantity-input"/>
+        <text class="unit">lots</text>
+      </view>
+      <view class="quick-btns">
+        <view class="quick-btn" bindtap="setQuantity" data-qty="1">1 lot</view>
+        <view class="quick-btn" bindtap="setQuantity" data-qty="5">5 lots</view>
+        <view class="quick-btn" bindtap="setQuantity" data-qty="10">10 lots</view>
+        <view class="quick-btn" bindtap="setQuantity" data-qty="{{maxQuantity}}">All</view>
+      </view>
+    </view>
+
+    <view class="info-section">
+      <view class="info-row">
+        <text class="info-label">{{tradeType === 'buy' ? 'Can Buy' : 'Can Sell'}}</text>
+        <text class="info-value">{{maxQuantity}} lots</text>
+      </view>
+      <view class="info-row">
+        <text class="info-label">Current Price</text>
+        <text class="info-value">¥{{stock.currentPrice}}</text>
+      </view>
+      <view class="info-row">
+        <text class="info-label">Fees</text>
+        <text class="info-value">¥{{commission}}</text>
+      </view>
+      <view class="info-row total">
+        <text class="info-label">{{tradeType === 'buy' ? 'Total Cost' : 'Total Amount'}}</text>
+        <text class="info-value primary">¥{{totalCost}}</text>
+      </view>
+    </view>
+
+    <button class="btn {{tradeType === 'buy' ? 'btn-buy' : 'btn-sell'}}" 
+            bindtap="confirmTrade"
+            disabled="{{!canTrade}}">
+      {{tradeType === 'buy' ? 'Confirm Buy' : 'Confirm Sell'}}
+    </button>
+  </view>
+</view>

@@ -1,0 +1,69 @@
+<view class="container">
+  <view class="header">
+    <view class="header-title">My Portfolio</view>
+    <view class="total-assets">
+      <view class="assets-label">Total Assets</view>
+      <view class="assets-value">?{{totalAssets}}</view>
+    </view>
+    <view class="profit-info">
+      <text>Profit: </text>
+      <text class="{{totalProfit >= 0 ? 'profit-positive' : 'profit-negative'}}">
+        {{totalProfit >= 0 ? '+' : ''}}?{{totalProfit}} ({{profitRate}}%)
+      </text>
+    </view>
+  </view>
+
+  <view class="assets-breakdown">
+    <view class="breakdown-item">
+      <view class="breakdown-label">Cash Balance</view>
+      <view class="breakdown-value">?{{userData.cash}}</view>
+    </view>
+    <view class="breakdown-item">
+      <view class="breakdown-label">Market Value</view>
+      <view class="breakdown-value">?{{totalAssets - userData.cash}}</view>
+    </view>
+  </view>
+
+  <view class="stock-section">
+    <view class="section-title">Holdings</view>
+    <view class="stock-list">
+      <block wx:if="{{stocks.length > 0}}">
+        <view wx:for="{{stocks}}" wx:key="code" 
+              class="stock-item" 
+              bindtap="toTrade" 
+              data-code="{{item.code}}">
+          <view class="stock-info">
+            <view class="stock-name">{{item.name}}</view>
+            <view class="stock-code">{{item.code}}</view>
+          </view>
+          <view class="stock-holdings">
+            <view class="holding-row">
+              <text class="holding-label">Shares</text>
+              <text class="holding-value">{{item.quantity}}</text>
+            </view>
+            <view class="holding-row">
+              <text class="holding-label">Cost</text>
+              <text class="holding-value">?{{(item.cost / item.quantity).toFixed(2)}}</text>
+            </view>
+          </view>
+          <view class="stock-price">
+            <view class="price">?{{item.currentPrice}}</view>
+            <view class="change {{item.change >= 0 ? 'change-up' : 'change-down'}}">
+              {{item.change >= 0 ? '+' : ''}}{{item.change}}%
+            </view>
+            <view class="profit">
+              {{(item.quantity * item.currentPrice - item.cost) >= 0 ? 'Gain' : 'Loss'}}
+              ?{{(item.quantity * item.currentPrice - item.cost).toFixed(2)}}
+            </view>
+          </view>
+        </view>
+      </block>
+      <block wx:else>
+        <view class="empty-state">
+          <text>No Holdings</text>
+          <text class="empty-hint">Go to Market to buy stocks</text>
+        </view>
+      </block>
+    </view>
+  </view>
+</view>

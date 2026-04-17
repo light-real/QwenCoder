@@ -1,0 +1,20 @@
+.market-section {
+  padding: 20rpx;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #e94560;
+  margin-bottom: 20rpx;
+  padding-left: 10rpx;
+  border-left: 4rpx solid #e94560;
+}
+
+.stock-list {
+  margin-top: 20rpx;
+}
+
+.stock-info {
+  flex: 1;
+}

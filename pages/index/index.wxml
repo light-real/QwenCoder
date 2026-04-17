@@ -1,0 +1,32 @@
+<view class="container">
+  <view class="header">
+    <view class="header-title">Stock Trading</view>
+    <view class="total-assets">
+      <view class="assets-label">Cash Balance</view>
+      <view class="assets-value">¥{{userData.cash}}</view>
+    </view>
+    <view class="profit-info">
+      <text>Available | Updated {{currentTime}}</text>
+    </view>
+  </view>
+
+  <view class="market-section">
+    <view class="section-title">Market</view>
+    <view class="stock-list">
+      <block wx:for="{{stocks}}" wx:key="code">
+        <view class="stock-item" bindtap="toTrade" data-code="{{item.code}}">
+          <view class="stock-info">
+            <view class="stock-name">{{item.name}}</view>
+            <view class="stock-code">{{item.code}} - {{item.industry}}</view>
+          </view>
+          <view class="stock-price">
+            <view class="price">¥{{item.currentPrice}}</view>
+            <view class="change {{item.change >= 0 ? 'change-up' : 'change-down'}}">
+              {{item.change >= 0 ? '+' : ''}}{{item.change}}%
+            </view>
+          </view>
+        </view>
+      </block>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,62 @@
+# TabBar 图标说明
+
+本项目需要以下图标文件，请放置在 `images` 目录下：
+
+## 必需的图标文件
+
+1. `market.png` - 行情页面图标（未选中）
+2. `market-active.png` - 行情页面图标（选中）
+3. `portfolio.png` - 持仓页面图标（未选中）
+4. `portfolio-active.png` - 持仓页面图标（选中）
+5. `history.png` - 历史记录页面图标（未选中）
+6. `history-active.png` - 历史记录页面图标（选中）
+7. `rank.png` - 排行榜页面图标（未选中）
+8. `rank-active.png` - 排行榜页面图标（选中）
+
+## 图标规格
+
+- 尺寸：81 × 81 像素
+- 格式：PNG（支持透明背景）
+- 大小：建议不超过 40KB
+
+## 快速解决方案
+
+如果暂时没有图标，可以使用以下方法：
+
+### 方法一：使用系统默认图标
+在 `app.json` 中移除 `iconPath` 和 `selectedIconPath` 配置。
+
+### 方法二：创建临时图标
+可以使用在线工具生成简单的图标：
+- [Favicon & App Icon Generator](https://www.favicon-generator.org/)
+- [App Icon Generator](https://appicon.co/)
+
+### 方法三：下载开源图标
+- [阿里巴巴矢量图标库](https://www.iconfont.cn/)
+- [Ionicons](https://ionicons.com/)
+
+## 推荐尺寸
+
+微信小程序 TabBar 图标建议尺寸：
+- 81px × 81px（@2x）
+- 实际显示大小会自适应
+
+## 存放位置
+
+将图标文件放在项目根目录的 `images` 文件夹下：
+
+```
+StockGame/
+├── images/
+│   ├── market.png
+│   ├── market-active.png
+│   ├── portfolio.png
+│   ├── portfolio-active.png
+│   ├── history.png
+│   ├── history-active.png
+│   ├── rank.png
+│   └── rank-active.png
+└── ...
+```
+
+如果没有 `images` 目录，请手动创建。

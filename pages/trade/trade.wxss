@@ -1,0 +1,166 @@
+.header {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  padding: 40rpx 30rpx;
+  border-radius: 0 0 30rpx 30rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30rpx;
+}
+
+.stock-header {
+  flex: 1;
+}
+
+.stock-name {
+  font-size: 40rpx;
+  font-weight: bold;
+  color: #fff;
+  margin-bottom: 10rpx;
+}
+
+.stock-code {
+  font-size: 26rpx;
+  color: #888;
+}
+
+.stock-price {
+  text-align: right;
+}
+
+.current-price {
+  font-size: 48rpx;
+  font-weight: bold;
+  color: #fff;
+  margin-bottom: 10rpx;
+}
+
+.change {
+  font-size: 28rpx;
+  padding: 6rpx 16rpx;
+  border-radius: 8rpx;
+  display: inline-block;
+}
+
+.trade-section {
+  padding: 30rpx;
+}
+
+.trade-type {
+  display: flex;
+  gap: 20rpx;
+  margin-bottom: 40rpx;
+}
+
+.type-btn {
+  flex: 1;
+  padding: 24rpx;
+  text-align: center;
+  border-radius: 12rpx;
+  font-size: 32rpx;
+  font-weight: bold;
+  background: #1a1a2e;
+  color: #888;
+  border: 2rpx solid #333;
+}
+
+.active-buy {
+  background: rgba(242, 54, 69, 0.1);
+  color: #f23645;
+  border-color: #f23645;
+}
+
+.active-sell {
+  background: rgba(8, 145, 178, 0.1);
+  color: #0891b2;
+  border-color: #0891b2;
+}
+
+.quantity-section {
+  background: #1a1a2e;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  margin-bottom: 30rpx;
+}
+
+.label {
+  font-size: 28rpx;
+  color: #888;
+  margin-bottom: 20rpx;
+}
+
+.input-wrapper {
+  display: flex;
+  align-items: center;
+  background: #0f0f23;
+  border-radius: 12rpx;
+  padding: 20rpx;
+  margin-bottom: 20rpx;
+}
+
+.quantity-input {
+  flex: 1;
+  font-size: 36rpx;
+  color: #fff;
+}
+
+.unit {
+  font-size: 28rpx;
+  color: #888;
+  margin-left: 20rpx;
+}
+
+.quick-btns {
+  display: flex;
+  gap: 15rpx;
+}
+
+.quick-btn {
+  flex: 1;
+  padding: 16rpx;
+  text-align: center;
+  background: #16213e;
+  border-radius: 8rpx;
+  font-size: 26rpx;
+  color: #fff;
+}
+
+.info-section {
+  background: #1a1a2e;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  margin-bottom: 40rpx;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #333;
+}
+
+.info-row:last-child {
+  border-bottom: none;
+}
+
+.info-label {
+  font-size: 28rpx;
+  color: #888;
+}
+
+.info-value {
+  font-size: 28rpx;
+  color: #fff;
+}
+
+.info-value.primary {
+  color: #e94560;
+  font-weight: bold;
+  font-size: 32rpx;
+}
+
+.info-row.total {
+  padding-top: 30rpx;
+  margin-top: 10rpx;
+  border-top: 2rpx solid #e94560;
+}
