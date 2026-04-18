@@ -20,7 +20,8 @@ Page({
 
   calculateMyRank() {
     const userData = app.getUserData();
-    const totalAssets = userData.cash + userData.stocks.reduce((sum, s) => sum + s.quantity * (s.currentPrice || 0), 0);
+    // 合约账户：总资产 = 现金 + 所有持仓保证金
+    const totalAssets = userData.cash + userData.stocks.reduce((sum, s) => sum + (s.margin || 0), 0);
     const profit = totalAssets - app.globalData.initialMoney;
     const profitRate = ((profit / app.globalData.initialMoney) * 100).toFixed(2);
     

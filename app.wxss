@@ -1,687 +1,273 @@
+/* ═══════════════════════════════════════════════════════
+   全局基础样式  —  极简暗色 / OKX·Bybit 风格
+   色彩系统：
+     背景  #0a0b0d (近纯黑)
+     卡片  #13151a
+     边线  rgba(255,255,255,0.06)
+     主绿  #00c076   主红  #ff5353
+     主蓝  #3b82f6   金黄  #f0b90b
+   ════════════════════════════════════════════════════════ */
+
 page {
-  background-color: #09090b;
-  color: #ffffff;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background-color: #0a0b0d;
+  color: #e8eaf2;
+  font-family: -apple-system, 'PingFang SC', 'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
-.container {
-  padding: 24rpx;
-  min-height: 100vh;
-}
+/* ── 通用上升/下降颜色 ─────────────────────────── */
+.up   { color: #00c076; }
+.down { color: #ff5353; }
 
-.header {
-  background: linear-gradient(135deg, #18181b 0%, #27272a 100%);
+/* ── 磨砂玻璃卡片基础 ──────────────────────────── */
+.glass-card {
+  background: rgba(255,255,255,0.035);
+  border: 1rpx solid rgba(255,255,255,0.07);
   border-radius: 20rpx;
-  padding: 32rpx;
-  margin-bottom: 32rpx;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(12px);
 }
 
-.header-title {
-  font-size: 44rpx;
-  font-weight: 700;
-  color: #ffffff;
-  text-align: center;
-  margin-bottom: 24rpx;
-  letter-spacing: -0.02em;
-}
-
-.total-assets {
-  text-align: center;
-  margin-bottom: 20rpx;
-}
-
-.assets-label {
-  font-size: 28rpx;
-  color: #a1a1aa;
-  margin-bottom: 8rpx;
-  font-weight: 500;
-}
-
-.assets-value {
-  font-size: 52rpx;
-  font-weight: 700;
-  color: #22c55e;
-  letter-spacing: -0.02em;
-}
-
-.profit-info {
-  text-align: center;
-  font-size: 28rpx;
-  color: #a1a1aa;
-}
-
-.profit-positive {
-  color: #22c55e;
-  font-weight: 600;
-}
-
-.profit-negative {
-  color: #ef4444;
-  font-weight: 600;
-}
-
+/* ── 通用板块标题 ──────────────────────────────── */
 .section-title {
-  font-size: 36rpx;
-  font-weight: 700;
-  color: #ffffff;
-  margin-bottom: 24rpx;
-  padding-left: 16rpx;
-  border-left: 4rpx solid #22c55e;
-  letter-spacing: -0.02em;
-}
-
-.stock-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16rpx;
-}
-
-.stock-item {
-  background: linear-gradient(135deg, #18181b 0%, #27272a 100%);
-  border-radius: 16rpx;
-  padding: 28rpx;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  transition: all 200ms ease-out;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.stock-item:active {
-  transform: scale(0.98);
-  opacity: 0.9;
-}
-
-.stock-info {
-  flex: 1;
-}
-
-.stock-name {
-  font-size: 32rpx;
+  font-size: 28rpx;
   font-weight: 600;
-  color: #ffffff;
-  margin-bottom: 8rpx;
-  letter-spacing: -0.01em;
+  color: #9098b0;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
-.stock-code {
-  font-size: 24rpx;
-  color: #71717a;
-  font-weight: 500;
-}
-
-.stock-price {
-  text-align: right;
-  min-width: 160rpx;
-}
-
-.price {
-  font-size: 36rpx;
-  font-weight: 700;
-  color: #ffffff;
-  margin-bottom: 8rpx;
-  letter-spacing: -0.02em;
-}
-
-.change {
-  font-size: 24rpx;
-  font-weight: 600;
-  padding: 6rpx 14rpx;
-  border-radius: 8rpx;
-  display: inline-block;
-}
-
-.change-up {
-  color: #22c55e;
-  background: rgba(34, 197, 94, 0.15);
-}
-
-.change-down {
-  color: #ef4444;
-  background: rgba(239, 68, 68, 0.15);
-}
-
-.market-section,
-.stock-section {
-  margin-bottom: 32rpx;
-}
-
+/* ── 通用空状态 ───────────────────────────────── */
 .empty-state {
   text-align: center;
-  padding: 80rpx 0;
-  color: #71717a;
+  padding: 120rpx 0;
+  color: #3a3d4a;
 }
 
 .empty-state text {
   display: block;
-  font-size: 32rpx;
+  font-size: 30rpx;
   margin-bottom: 16rpx;
 }
 
 .empty-hint {
-  font-size: 28rpx;
-  color: #52525b;
+  font-size: 26rpx;
+  color: #2e313c;
 }
 
-.filter-section {
-  display: flex;
-  gap: 16rpx;
-  margin-bottom: 24rpx;
-}
-
-.filter-btn {
-  flex: 1;
-  padding: 20rpx;
-  text-align: center;
-  border-radius: 12rpx;
-  font-size: 28rpx;
-  font-weight: 600;
-  background: #18181b;
-  color: #71717a;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  transition: all 200ms ease-out;
-}
-
-.filter-btn.active {
-  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-  color: #ffffff;
-  border-color: transparent;
-}
-
-.filter-btn:active {
-  transform: scale(0.95);
-}
-
+/* ── 历史记录列表 ─────────────────────────────── */
 .history-list {
   display: flex;
   flex-direction: column;
-  gap: 16rpx;
+  gap: 12rpx;
+  padding: 0 24rpx;
 }
 
 .history-item {
-  background: linear-gradient(135deg, #18181b 0%, #27272a 100%);
-  border-radius: 16rpx;
-  padding: 28rpx;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  background: #13151a;
+  border-radius: 18rpx;
+  padding: 26rpx 28rpx;
+  border: 1rpx solid rgba(255,255,255,0.06);
 }
 
 .history-type {
   display: inline-block;
-  padding: 6rpx 14rpx;
-  border-radius: 8rpx;
-  font-size: 24rpx;
-  font-weight: 600;
-  margin-bottom: 12rpx;
+  padding: 5rpx 18rpx;
+  border-radius: 6rpx;
+  font-size: 22rpx;
+  font-weight: 700;
+  margin-bottom: 14rpx;
+  letter-spacing: 0.06em;
 }
 
-.history-type.buy {
-  background: rgba(34, 197, 94, 0.15);
-  color: #22c55e;
-}
-
-.history-type.sell {
-  background: rgba(239, 68, 68, 0.15);
-  color: #ef4444;
-}
+.history-type.buy  { background: rgba(0,192,118,0.12); color: #00c076; }
+.history-type.sell { background: rgba(255,83,83,0.12);  color: #ff5353; }
 
 .history-name {
   font-size: 30rpx;
-  font-weight: 600;
-  color: #ffffff;
+  font-weight: 700;
+  color: #e8eaf2;
   margin-bottom: 6rpx;
 }
 
 .history-code {
-  font-size: 24rpx;
-  color: #71717a;
+  font-size: 22rpx;
+  color: #454860;
   margin-bottom: 16rpx;
 }
 
-.detail-label {
-  color: #71717a;
-  font-size: 26rpx;
-}
-
-.detail-value {
-  color: #ffffff;
-  font-size: 26rpx;
-  font-weight: 600;
-}
+.detail-label { color: #5a5f75; font-size: 24rpx; }
+.detail-value { color: #c8cad8; font-size: 24rpx; font-weight: 600; }
 
 .history-time {
-  font-size: 24rpx;
-  color: #52525b;
-  margin-top: 12rpx;
+  font-size: 22rpx;
+  color: #383b4a;
+  margin-top: 14rpx;
 }
 
-.history-profit {
-  font-size: 28rpx;
-  font-weight: 700;
-}
+.history-profit { font-size: 28rpx; font-weight: 700; }
+.profit-up   { color: #00c076; }
+.profit-down { color: #ff5353; }
 
-.profit-up {
-  color: #22c55e;
-}
-
-.profit-down {
-  color: #ef4444;
-}
-
-.rank-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16rpx;
-}
-
-.rank-item {
-  background: linear-gradient(135deg, #18181b 0%, #27272a 100%);
-  border-radius: 16rpx;
-  padding: 28rpx;
-  display: flex;
-  align-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.rank-item.me {
-  background: linear-gradient(135deg, #166534 0%, #15803d 100%);
-  border: 2px solid #22c55e;
-  box-shadow: 0 4px 6px rgba(34, 197, 94, 0.2);
-}
-
-.rank-number {
-  width: 64rpx;
-  height: 64rpx;
-  border-radius: 50%;
-  background: #27272a;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 28rpx;
-  font-weight: 700;
-  color: #71717a;
-  margin-right: 20rpx;
-}
-
-.rank-number.top-1 {
-  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-  color: #ffffff;
-}
-
-.rank-number.top-2 {
-  background: linear-gradient(135deg, #d1d5db 0%, #9ca3af 100%);
-  color: #ffffff;
-}
-
-.rank-number.top-3 {
-  background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
-  color: #ffffff;
-}
-
-.rank-name {
-  font-size: 30rpx;
-  font-weight: 600;
-  color: #ffffff;
-  margin-bottom: 6rpx;
-}
-
-.rank-assets {
-  font-size: 24rpx;
-  color: #71717a;
-}
-
-.profit-text {
-  font-size: 28rpx;
-  font-weight: 700;
-  text-align: right;
-}
-
-.profit-percent {
-  font-size: 24rpx;
-  text-align: right;
-  color: #71717a;
-}
-
-.trade-section {
-  padding: 24rpx;
-}
-
-.trade-type {
-  display: flex;
-  gap: 16rpx;
-  margin-bottom: 32rpx;
-}
-
-.type-btn {
-  flex: 1;
-  padding: 24rpx;
-  text-align: center;
-  border-radius: 14rpx;
-  font-size: 32rpx;
-  font-weight: 700;
-  background: #18181b;
-  color: #71717a;
-  border: 2px solid rgba(255, 255, 255, 0.05);
-  transition: all 200ms ease-out;
-}
-
-.type-btn.active-buy {
-  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-  color: #ffffff;
-  border-color: transparent;
-}
-
-.type-btn.active-sell {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-  color: #ffffff;
-  border-color: transparent;
-}
-
-.quantity-section {
-  background: #18181b;
-  border-radius: 16rpx;
-  padding: 28rpx;
-  margin-bottom: 24rpx;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.label {
-  font-size: 28rpx;
-  color: #a1a1aa;
-  margin-bottom: 16rpx;
-  font-weight: 500;
-}
-
-.input-wrapper {
-  display: flex;
-  align-items: center;
-  background: #27272a;
-  border-radius: 12rpx;
-  padding: 20rpx;
-  margin-bottom: 16rpx;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.quantity-input {
-  flex: 1;
-  font-size: 36rpx;
-  color: #ffffff;
-  font-weight: 600;
-}
-
-.unit {
-  font-size: 28rpx;
-  color: #71717a;
-  margin-left: 16rpx;
-}
-
-.quick-btns {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12rpx;
-}
-
-.quick-btn {
-  padding: 16rpx;
-  text-align: center;
-  background: #27272a;
-  border-radius: 10rpx;
-  font-size: 26rpx;
-  font-weight: 600;
-  color: #ffffff;
-  transition: all 150ms ease-out;
-}
-
-.quick-btn:active {
-  transform: scale(0.95);
-  background: #3f3f46;
-}
-
-.info-section {
-  background: #18181b;
-  border-radius: 16rpx;
-  padding: 28rpx;
-  margin-bottom: 32rpx;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.info-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 20rpx 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.info-row:last-child {
-  border-bottom: none;
-}
-
-.info-label {
-  font-size: 28rpx;
-  color: #a1a1aa;
-  font-weight: 500;
-}
-
-.info-value {
-  font-size: 28rpx;
-  color: #ffffff;
-  font-weight: 600;
-}
-
-.info-value.primary {
-  color: #22c55e;
-  font-size: 32rpx;
-  font-weight: 700;
-}
-
-.btn {
-  width: 100%;
-  padding: 28rpx;
-  text-align: center;
-  border-radius: 14rpx;
-  font-size: 32rpx;
-  font-weight: 700;
-  color: #ffffff;
-  border: none;
-  margin-top: 24rpx;
-  transition: all 200ms ease-out;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-}
-
-.btn:active {
-  transform: scale(0.98);
-}
-
-.btn-buy {
-  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-}
-
-.btn-sell {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-}
-
-.btn[disabled] {
-  opacity: 0.5;
-  transform: none;
-}
-
+/* ── 资产明细网格 ─────────────────────────────── */
 .assets-breakdown {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 16rpx;
-  margin-bottom: 32rpx;
+  gap: 14rpx;
+  padding: 0 24rpx;
+  margin-bottom: 28rpx;
 }
 
 .breakdown-item {
-  background: #18181b;
+  background: #13151a;
   border-radius: 16rpx;
   padding: 24rpx;
   text-align: center;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1rpx solid rgba(255,255,255,0.05);
 }
 
 .breakdown-label {
-  font-size: 26rpx;
-  color: #a1a1aa;
+  font-size: 22rpx;
+  color: #5a5f75;
   margin-bottom: 10rpx;
-  font-weight: 500;
 }
 
 .breakdown-value {
   font-size: 32rpx;
   font-weight: 700;
-  color: #ffffff;
+  color: #e8eaf2;
 }
 
-.stock-holdings {
-  margin-right: 20rpx;
+/* ── 持仓行 ──────────────────────────────────── */
+.stock-holdings { margin-right: 20rpx; }
+
+.holding-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6rpx;
+  gap: 16rpx;
 }
 
-.holding-label {
-  color: #71717a;
+.holding-label { color: #5a5f75; font-size: 24rpx; }
+.holding-value { color: #c8cad8; font-size: 24rpx; font-weight: 600; }
+
+/* ── 排行榜 ──────────────────────────────────── */
+.rank-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+  padding: 0 24rpx;
+}
+
+.rank-item {
+  background: #13151a;
+  border-radius: 18rpx;
+  padding: 26rpx 28rpx;
+  display: flex;
+  align-items: center;
+  border: 1rpx solid rgba(255,255,255,0.06);
+}
+
+.rank-item.me {
+  background: linear-gradient(135deg, #0d1e38 0%, #102244 100%);
+  border: 1rpx solid rgba(59,130,246,0.35);
+}
+
+.rank-number {
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 24rpx;
-}
-
-.holding-value {
-  color: #ffffff;
-  font-size: 24rpx;
-  font-weight: 600;
-}
-
-.profit {
-  font-size: 24rpx;
-  color: #71717a;
-  margin-top: 8rpx;
-}
-
-.stock-header {
-  flex: 1;
-}
-
-.stock-header .stock-name {
-  font-size: 36rpx;
-  margin-bottom: 10rpx;
-}
-
-.stock-header .stock-code {
-  font-size: 26rpx;
-}
-
-.current-price {
-  font-size: 52rpx;
   font-weight: 700;
-  color: #ffffff;
-  margin-bottom: 8rpx;
+  color: #5a5f75;
+  margin-right: 22rpx;
+  flex-shrink: 0;
 }
 
-.my-rank {
-  text-align: center;
+.rank-number.top-1 { background: linear-gradient(135deg,#fbbf24,#f59e0b); color:#fff; }
+.rank-number.top-2 { background: linear-gradient(135deg,#c8cdd8,#9ca3af); color:#fff; }
+.rank-number.top-3 { background: linear-gradient(135deg,#d97706,#b45309); color:#fff; }
+
+.rank-name  { font-size: 28rpx; font-weight: 600; color: #e8eaf2; margin-bottom: 5rpx; }
+.rank-assets{ font-size: 22rpx; color: #5a5f75; }
+
+.profit-text    { font-size: 28rpx; font-weight: 700; text-align: right; margin-bottom: 4rpx; }
+.profit-percent { font-size: 22rpx; text-align: right; color: #5a5f75; }
+
+.my-rank    { text-align: center; margin-bottom: 16rpx; }
+.rank-label { font-size: 26rpx; color: #5a5f75; margin-bottom: 8rpx; }
+.rank-value { font-size: 52rpx; font-weight: 700; color: #3b82f6; }
+
+.profit-amount  { font-size: 40rpx; font-weight: 700; text-align: center; margin-bottom: 8rpx; }
+.profit-rate    { font-size: 28rpx; text-align: center; }
+
+/* ── 筛选按钮组 ──────────────────────────────── */
+.filter-section {
+  display: flex;
+  gap: 12rpx;
+  padding: 20rpx 24rpx 0;
   margin-bottom: 20rpx;
 }
 
-.rank-label {
-  font-size: 28rpx;
-  color: #a1a1aa;
-  margin-bottom: 10rpx;
-}
-
-.rank-value {
-  font-size: 48rpx;
-  font-weight: 700;
-  color: #22c55e;
-}
-
-.profit-amount {
-  font-size: 36rpx;
-  font-weight: 700;
+.filter-btn {
+  flex: 1;
+  padding: 16rpx;
   text-align: center;
-  margin-bottom: 8rpx;
+  border-radius: 12rpx;
+  font-size: 26rpx;
+  font-weight: 600;
+  background: rgba(255,255,255,0.03);
+  color: #5a5f75;
+  border: 1rpx solid rgba(255,255,255,0.06);
 }
 
-.profit-rate {
-  font-size: 28rpx;
-  text-align: center;
-}
-.kline-container {
-  background: #18181b;
-  border-radius: 16rpx;
-  padding: 24rpx;
-  margin-bottom: 32rpx;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+.filter-btn.active {
+  background: rgba(59,130,246,0.15);
+  color: #3b82f6;
+  border-color: rgba(59,130,246,0.3);
 }
 
-.kline-header {
+/* ── 旧式 stock-item（持仓/记录页兼容） ─────── */
+.stock-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.stock-item {
+  background: #13151a;
+  border-radius: 18rpx;
+  padding: 26rpx 28rpx;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16rpx;
+  border: 1rpx solid rgba(255,255,255,0.06);
 }
 
-.kline-title {
-  font-size: 32rpx;
-  font-weight: 700;
-  color: #ffffff;
-}
+.stock-item:active { opacity: 0.8; transform: scale(0.985); }
 
-.kline-range {
-  font-size: 24rpx;
-  color: #71717a;
-  font-weight: 500;
-}
+.stock-info { flex: 1; }
+.stock-name { font-size: 30rpx; font-weight: 700; color: #e8eaf2; margin-bottom: 6rpx; }
+.stock-code { font-size: 22rpx; color: #454860; font-weight: 500; letter-spacing: 0.04em; }
 
-.kline-canvas {
-  width: 100%;
-  height: 300rpx;
-  border-radius: 12rpx;
-  margin-bottom: 16rpx;
-}
+.stock-price { text-align: right; min-width: 160rpx; }
 
-.kline-info {
-  background: #27272a;
-  border-radius: 12rpx;
-  padding: 20rpx;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-}
+.price  { font-size: 34rpx; font-weight: 700; color: #e8eaf2; margin-bottom: 6rpx; letter-spacing: -0.01em; }
 
-.kline-date {
-  font-size: 28rpx;
+.change {
+  font-size: 22rpx;
   font-weight: 600;
-  color: #ffffff;
-  margin-bottom: 12rpx;
-  text-align: center;
+  padding: 5rpx 14rpx;
+  border-radius: 6rpx;
+  display: inline-block;
 }
 
-.kline-detail {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12rpx;
-  text-align: center;
-}
+.change-up   { color: #00c076; background: rgba(0,192,118,0.1); }
+.change-down { color: #ff5353; background: rgba(255,83,83,0.1); }
 
-.kline-item {
-  font-size: 24rpx;
-  color: #a1a1aa;
-}
-
-.kline-item:nth-child(1) {
-  color: #ffffff;
-}
-
-.kline-item:nth-child(2) {
-  color: #22c55e;
-}
-
-.kline-item:nth-child(3) {
-  color: #ef4444;
-}
-
-.kline-item:nth-child(4) {
-  color: #ffffff;
-}
+/* ── 利润颜色（兼容旧命名） ───────────────────── */
+.profit-positive { color: #00c076; font-weight: 600; }
+.profit-negative { color: #ff5353; font-weight: 600; }

@@ -1,4 +1,4 @@
-﻿const app = getApp();
+﻿﻿const app = getApp();
 const stockUtil = require('../../utils/stock.js');
 
 Page({
@@ -8,6 +8,7 @@ Page({
     totalAssets: 0,
     totalProfit: 0,
     profitRate: 0,
+    holdingValue: 0,
   },
 
   onLoad() {
@@ -21,21 +22,30 @@ Page({
   loadData() {
     const userData = app.getUserData();
     
-    userData.stocks.forEach(stock => {
+    const stocks = userData.stocks.map(stock => {
       const marketStock = stockUtil.getStockByCode(stock.code);
-      if (marketStock) {
-        stock.currentPrice = marketStock.currentPrice;
-        stock.change = marketStock.change;
-      }
+      const currentPrice = marketStock ? marketStock.currentPrice : (stock.currentPrice || 0);
+      const change = marketStock ? marketStock.change : (stock.change || 0);
+      const marketValue = parseFloat((currentPrice * stock.quantity).toFixed(2));
+      const pnl = parseFloat((marketValue - stock.cost).toFixed(2));
+      return {
+        ...stock,
+        currentPrice,
+        change,
+        marketValue,
+        pnl,
+      };
     });
     
-    const totalAssets = userData.cash + userData.stocks.reduce((sum, s) => sum + s.quantity * (s.currentPrice || 0), 0);
-    const totalProfit = totalAssets - app.globalData.initialMoney;
+    const holdingValue = parseFloat(stocks.reduce((sum, s) => sum + s.marketValue, 0).toFixed(2));
+    const totalAssets = parseFloat((userData.cash + holdingValue).toFixed(2));
+    const totalProfit = parseFloat((totalAssets - app.globalData.initialMoney).toFixed(2));
     const profitRate = ((totalProfit / app.globalData.initialMoney) * 100).toFixed(2);
     
     this.setData({
-      userData,
-      stocks: userData.stocks,
+      userData: { ...userData, cash: parseFloat(userData.cash.toFixed(2)) },
+      stocks,
+      holdingValue,
       totalAssets,
       totalProfit,
       profitRate,

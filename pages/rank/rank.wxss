@@ -1,117 +1,191 @@
-.my-rank {
+/* ===== 排行页 ===== */
+.container {
+  background: linear-gradient(180deg, #0a0a14 0%, #0f0f1a 100%);
+  min-height: 100vh;
+  padding-bottom: 40rpx;
+}
+
+/* 顶部卡片 */
+.header-card {
+  background: linear-gradient(135deg, #0d0d22 0%, #151530 100%);
+  padding: 40rpx 30rpx 36rpx;
+  border-bottom: 1rpx solid rgba(255,255,255,0.06);
+}
+
+.header-title {
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 28rpx;
+}
+
+/* 我的战绩区 */
+.my-stats {
+  display: flex;
+  align-items: center;
+  background: rgba(255,255,255,0.04);
+  border-radius: 20rpx;
+  padding: 24rpx 30rpx;
+  border: 1rpx solid rgba(255,255,255,0.06);
+}
+
+.my-rank-badge {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 20rpx;
+  flex-shrink: 0;
+  min-width: 120rpx;
+}
+
+.rank-no {
+  font-size: 56rpx;
+  font-weight: 700;
+  color: #3b82f6;
+  line-height: 1.1;
 }
 
 .rank-label {
-  font-size: 28rpx;
-  color: #888;
-  margin-bottom: 10rpx;
+  font-size: 22rpx;
+  color: #8888aa;
+  margin-top: 4rpx;
 }
 
-.rank-value {
-  font-size: 48rpx;
-  font-weight: bold;
-  color: #e94560;
+.my-divider {
+  width: 1rpx;
+  height: 80rpx;
+  background: rgba(255,255,255,0.08);
+  margin: 0 28rpx;
+}
+
+.my-profit-wrap {
+  flex: 1;
 }
 
 .my-profit {
-  text-align: center;
+  font-size: 40rpx;
+  font-weight: 700;
+  margin-bottom: 8rpx;
 }
 
-.profit-amount {
-  font-size: 36rpx;
-  font-weight: bold;
-  margin-bottom: 10rpx;
+.my-profit.up { color: #26c97a; }
+.my-profit.down { color: #f04c5a; }
+
+.my-rate {
+  font-size: 26rpx;
+  font-weight: 600;
 }
 
-.profit-rate {
-  font-size: 28rpx;
+.my-rate.up { color: #26c97a; }
+.my-rate.down { color: #f04c5a; }
+
+/* 榜单区 */
+.rank-section {
+  padding: 28rpx 24rpx 0;
 }
 
-.profit-up {
-  color: #f23645;
-}
-
-.profit-down {
-  color: #0891b2;
-}
-
-.rank-list {
-  padding: 20rpx;
-}
-
-.rank-item {
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-  border-radius: 16rpx;
-  padding: 30rpx;
+.section-header {
   margin-bottom: 20rpx;
+}
+
+.section-title {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #ccccee;
+  padding-left: 18rpx;
+  border-left: 4rpx solid #3b82f6;
+}
+
+/* 榜单列表 */
+.rank-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14rpx;
+}
+
+/* 榜单卡片 */
+.rank-card {
+  background: linear-gradient(135deg, #13132a 0%, #1b1b38 100%);
+  border-radius: 20rpx;
+  padding: 26rpx 28rpx;
   display: flex;
   align-items: center;
+  gap: 20rpx;
+  border: 1rpx solid rgba(255,255,255,0.06);
+  box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.3);
 }
 
-.rank-item.me {
-  background: linear-gradient(135deg, #e94560 0%, #ff6b6b 100%);
-  box-shadow: 0 4rpx 20rpx rgba(233, 69, 96, 0.3);
+.rank-card.me {
+  background: linear-gradient(135deg, #0c2240 0%, #102d55 100%);
+  border: 1rpx solid rgba(59,130,246,0.45);
+  box-shadow: 0 4rpx 20rpx rgba(59,130,246,0.15);
 }
 
-.rank-number {
-  width: 60rpx;
-  height: 60rpx;
-  border-radius: 50%;
-  background: #333;
+/* 名次徽章 */
+.rank-num {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 18rpx;
+  background: rgba(255,255,255,0.06);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 28rpx;
-  font-weight: bold;
-  color: #888;
-  margin-right: 20rpx;
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #666688;
+  flex-shrink: 0;
 }
 
-.rank-number.top-1 {
-  background: linear-gradient(135deg, #ffd700 0%, #ffb700 100%);
-  color: #fff;
+.rank-num.gold {
+  background: rgba(251,191,36,0.1);
 }
 
-.rank-number.top-2 {
-  background: linear-gradient(135deg, #c0c0c0 0%, #a8a8a8 100%);
-  color: #fff;
+.rank-num.silver {
+  background: rgba(209,213,219,0.1);
 }
 
-.rank-number.top-3 {
-  background: linear-gradient(135deg, #cd7f32 0%, #b8690f 100%);
-  color: #fff;
+.rank-num.bronze {
+  background: rgba(217,119,6,0.1);
 }
 
+/* 名称区 */
 .rank-info {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
 }
 
 .rank-name {
   font-size: 30rpx;
-  font-weight: bold;
-  color: #fff;
-  margin-bottom: 8rpx;
+  font-weight: 700;
+  color: #ffffff;
 }
 
 .rank-assets {
-  font-size: 26rpx;
-  color: #888;
+  font-size: 22rpx;
+  color: #666688;
+}
+
+/* 收益区 */
+.rank-profit-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6rpx;
 }
 
 .rank-profit {
-  text-align: right;
-}
-
-.profit-text {
   font-size: 28rpx;
-  font-weight: bold;
-  margin-bottom: 8rpx;
+  font-weight: 700;
 }
 
-.profit-percent {
-  font-size: 24rpx;
+.rank-profit.up { color: #26c97a; }
+.rank-profit.down { color: #f04c5a; }
+
+.rank-rate {
+  font-size: 22rpx;
+  font-weight: 600;
 }
+
+.rank-rate.up { color: #26c97a; }
+.rank-rate.down { color: #f04c5a; }

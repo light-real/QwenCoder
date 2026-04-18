@@ -1,3 +1,5 @@
+const FormatData = require('./formatData.js');
+
 class ChartHelper {
   constructor(canvasId) {
     this.canvasId = canvasId;
@@ -5,7 +7,8 @@ class ChartHelper {
     this.data = [];
     this.width = 0;
     this.height = 0;
-    this.padding = { top: 20, right: 20, bottom: 40, left: 60 };
+    this.padding = { top: 20, right: 20, bottom: 40, left: 65 };
+    this.interval = '5m'; // 当前周期，用于时间轴格式化
   }
 
   init(ctx) {
@@ -15,6 +18,11 @@ class ChartHelper {
 
   setData(klineData) {
     this.data = klineData;
+    return this;
+  }
+
+  setInterval(interval) {
+    this.interval = interval;
     return this;
   }
 
@@ -82,32 +90,45 @@ class ChartHelper {
     if (!this.ctx) return;
 
     const chartArea = this.getChartArea();
+    const chartWidth = this.width - chartArea.right;
 
-    this.ctx.setStrokeStyle('#3f3f46');
+    this.ctx.setStrokeStyle('#2a2a3e');
     this.ctx.setLineWidth(1);
 
+    // 横向网格线 + 价格标签
     for (let i = 0; i <= 4; i++) {
       const y = chartArea.top + (chartArea.height / 4) * i;
       
       this.ctx.beginPath();
       this.ctx.moveTo(chartArea.left, y);
-      this.ctx.lineTo(this.width - chartArea.right, y);
+      this.ctx.lineTo(chartWidth, y);
       this.ctx.stroke();
 
       const price = priceRange.max - (priceRange.range / 4) * i;
+      // 根据价格大小决定小数位
+      const decimals = price >= 1000 ? 2 : price >= 1 ? 4 : 6;
+      const priceStr = price.toFixed(decimals);
       this.ctx.setFillStyle('#71717a');
       this.ctx.setFontSize(10);
       this.ctx.setTextAlign('right');
-      this.ctx.fillText(price.toFixed(2), chartArea.left - 5, y + 4);
+      this.ctx.fillText(priceStr, chartArea.left - 4, y + 4);
     }
 
-    for (let i = 0; i < this.data.length; i++) {
-      if (i % 5 === 0) {
+    // 纵向时间轴标签：每隔适当间距显示一个
+    const total = this.data.length;
+    // 根据数量决定步长，保证最多显示 6~8 个标签
+    const step = Math.max(1, Math.ceil(total / 7));
+    for (let i = 0; i < total; i++) {
+      if (i % step === 0) {
         const x = this.indexToX(i) + this.getCandleWidth() / 2;
+        const ts = this.data[i].time;
+        const label = ts
+          ? FormatData.formatKlineDateByInterval(ts, this.interval)
+          : (this.data[i].date || '');
         this.ctx.setFillStyle('#71717a');
         this.ctx.setFontSize(10);
         this.ctx.setTextAlign('center');
-        this.ctx.fillText(this.data[i].date || '', x, this.height - 10);
+        this.ctx.fillText(label, x, this.height - 8);
       }
     }
   }

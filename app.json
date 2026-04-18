@@ -8,37 +8,37 @@
   ],
   "window": {
     "backgroundTextStyle": "light",
-    "navigationBarBackgroundColor": "#1a1a2e",
-    "navigationBarTitleText": "Stock Trading",
+    "navigationBarBackgroundColor": "#0f0f1a",
+    "navigationBarTitleText": "加密货币模拟交易",
     "navigationBarTextStyle": "white"
   },
   "tabBar": {
-    "color": "#999999",
-    "selectedColor": "#e94560",
-    "backgroundColor": "#1a1a2e",
+    "color": "#666680",
+    "selectedColor": "#3b82f6",
+    "backgroundColor": "#0f0f1a",
     "borderStyle": "black",
     "list": [
       {
         "pagePath": "pages/index/index",
-        "text": "Market",
+        "text": "行情",
         "iconPath": "images/market.png",
         "selectedIconPath": "images/market-active.png"
       },
       {
         "pagePath": "pages/portfolio/portfolio",
-        "text": "Portfolio",
+        "text": "持仓",
         "iconPath": "images/portfolio.png",
         "selectedIconPath": "images/portfolio-active.png"
       },
       {
         "pagePath": "pages/history/history",
-        "text": "History",
+        "text": "记录",
         "iconPath": "images/history.png",
         "selectedIconPath": "images/history-active.png"
       },
       {
         "pagePath": "pages/rank/rank",
-        "text": "Rank",
+        "text": "排行",
         "iconPath": "images/rank.png",
         "selectedIconPath": "images/rank-active.png"
       }

@@ -83,16 +83,48 @@ class FormatData {
 
   static formatInterval(interval) {
     const intervals = {
-      '1m': '1 Minute',
-      '5m': '5 Minutes',
-      '15m': '15 Minutes',
-      '30m': '30 Minutes',
-      '1h': '1 Hour',
-      '4h': '4 Hours',
-      '1d': '1 Day',
-      '1w': '1 Week'
+      '1m': '1分钟',
+      '3m': '3分钟',
+      '5m': '5分钟',
+      '15m': '15分钟',
+      '30m': '30分钟',
+      '1h': '1小时',
+      '2h': '2小时',
+      '4h': '4小时',
+      '6h': '6小时',
+      '8h': '8小时',
+      '12h': '12小时',
+      '1d': '日K',
+      '3d': '3日',
+      '1w': '周K',
+      '1M': '月K',
     };
     return intervals[interval] || interval;
+  }
+
+  // 根据 interval 智能格式化 K线时间轴标签
+  // 分钟级别显示 HH:mm，小时级别显示 MM-DD HH:mm，日/周/月显示 MM-DD 或 YYYY-MM
+  static formatKlineDateByInterval(timestamp, interval) {
+    if (!timestamp) return '';
+    const date = new Date(timestamp);
+    const mm = (date.getMonth() + 1).toString().padStart(2, '0');
+    const dd = date.getDate().toString().padStart(2, '0');
+    const HH = date.getHours().toString().padStart(2, '0');
+    const min = date.getMinutes().toString().padStart(2, '0');
+    const yyyy = date.getFullYear();
+
+    if (interval === '1M') {
+      return `${yyyy}-${mm}`;
+    } else if (interval === '1w' || interval === '3d' || interval === '1d') {
+      return `${mm}-${dd}`;
+    } else if (interval === '8h' || interval === '12h' || interval === '4h' || interval === '6h') {
+      return `${mm}-${dd} ${HH}:00`;
+    } else if (interval === '1h' || interval === '2h') {
+      return `${mm}-${dd} ${HH}:${min}`;
+    } else {
+      // 分钟级别只显示 HH:mm
+      return `${HH}:${min}`;
+    }
   }
 
   static normalizeSymbol(symbol) {

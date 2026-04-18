@@ -1,116 +1,305 @@
 <view class="container">
-  <view class="header-card">
-    <view class="symbol-info">
-      <view class="symbol-name">{{stock.name}}</view>
-      <view class="symbol-code">{{stock.code}}</view>
+
+  <!-- ① 顶部行情栏 -->
+  <view class="top-bar">
+    <view class="top-coin">
+      <text class="top-coin-name">{{stock.code}}</text>
+      <text class="top-coin-sub">永续</text>
     </view>
-    
-    <view class="price-section">
-      <view class="current-price">${{currentPrice}}</view>
-      <view class="price-change {{priceChangePercent >= 0 ? 'positive' : 'negative'}}">
-        {{priceChangePercent >= 0 ? '��' : '��'}} {{priceChangePercent >= 0 ? '+' : ''}}{{priceChangePercent}}%
-      </view>
+    <view class="top-change-only">
+      <text class="top-change {{priceChangePercent >= 0 ? 'up' : 'down'}}">
+        {{priceChangePercent >= 0 ? '+' : ''}}{{priceChangePercent}}%
+      </text>
     </view>
   </view>
 
-  <view class="kline-card">
-    <view class="kline-header">
-      <view class="kline-title">
-        <text class="title-text">Price Chart</text>
-      </view>
-      <view class="interval-group">
-        <view class="interval-btn {{klineInterval === '1m' ? 'active' : ''}}" bindtap="switchKlineInterval" data-interval="1m">1m</view>
-        <view class="interval-btn {{klineInterval === '5m' ? 'active' : ''}}" bindtap="switchKlineInterval" data-interval="5m">5m</view>
-        <view class="interval-btn {{klineInterval === '15m' ? 'active' : ''}}" bindtap="switchKlineInterval" data-interval="15m">15m</view>
-        <view class="interval-btn {{klineInterval === '1h' ? 'active' : ''}}" bindtap="switchKlineInterval" data-interval="1h">1h</view>
-        <view class="interval-btn {{klineInterval === '4h' ? 'active' : ''}}" bindtap="switchKlineInterval" data-interval="4h">4h</view>
-        <view class="interval-btn {{klineInterval === '1d' ? 'active' : ''}}" bindtap="switchKlineInterval" data-interval="1d">1D</view>
-        <view class="interval-btn {{klineInterval === '1w' ? 'active' : ''}}" bindtap="switchKlineInterval" data-interval="1w">1W</view>
-        <view class="interval-btn {{klineInterval === '1M' ? 'active' : ''}}" bindtap="switchKlineInterval" data-interval="1M">1M</view>
-      </view>
-      <view class="tools-group">
-        <view class="tool-btn {{showMA5 ? 'active' : ''}}" bindtap="toggleMA5">MA5</view>
-        <view class="tool-btn {{showMA10 ? 'active' : ''}}" bindtap="toggleMA10">MA10</view>
-        <view class="tool-btn {{showVolume ? 'active' : ''}}" bindtap="toggleVolume">VOL</view>
-      </view>
-    </view>
-    
-    <view class="kline-chart-wrapper">
-      <canvas canvas-id="klineCanvas" class="kline-canvas" bindtouchstart="onTouchKLine" bindtouchmove="onTouchKLine"></canvas>
-    </view>
-    
-    <view class="kline-info-panel" wx:if="{{klineInfo}}">
-      <view class="info-grid">
-        <view class="info-item">
-          <text class="info-label">Date</text>
-          <text class="info-value">{{klineInfo.date}}</text>
-        </view>
-        <view class="info-item">
-          <text class="info-label">Open</text>
-          <text class="info-value">{{klineInfo.open}}</text>
-        </view>
-        <view class="info-item">
-          <text class="info-label">High</text>
-          <text class="info-value high">{{klineInfo.high}}</text>
-        </view>
-        <view class="info-item">
-          <text class="info-label">Low</text>
-          <text class="info-value low">{{klineInfo.low}}</text>
-        </view>
-        <view class="info-item">
-          <text class="info-label">Close</text>
-          <text class="info-value">{{klineInfo.close}}</text>
-        </view>
-      </view>
-    </view>
-  </view>
+  <!-- ② 核心区：左侧下单 + 右侧盘口 -->
+  <view class="main-body">
 
-  <view class="trade-card">
-    <view class="trade-tabs">
-      <view class="trade-tab {{tradeType === 'buy' ? 'active buy' : ''}}" bindtap="switchTradeType" data-type="buy">
-        <text>Buy</text>
-      </view>
-      <view class="trade-tab {{tradeType === 'sell' ? 'active sell' : ''}}" bindtap="switchTradeType" data-type="sell">
-        <text>Sell</text>
-      </view>
-    </view>
+    <!-- 左：下单区 -->
+    <view class="order-panel">
 
-    <view class="trade-form">
-      <view class="form-group">
-        <view class="form-label">Quantity ({{stock.symbol}})</view>
-        <view class="input-wrapper">
-          <input type="digit" value="{{quantity}}" bindinput="inputQuantity" placeholder="0.00" class="form-input"/>
+      <!-- 做多 / 做空 Tab -->
+      <view class="trade-tabs">
+        <view
+          class="trade-tab {{tradeType === 'buy' ? 'active-buy' : ''}}"
+          bindtap="switchTradeType"
+          data-type="buy"
+        >做多</view>
+        <view
+          class="trade-tab {{tradeType === 'sell' ? 'active-sell' : ''}}"
+          bindtap="switchTradeType"
+          data-type="sell"
+        >做空</view>
+      </view>
+
+      <!-- 杠杆选择 -->
+      <view class="leverage-section">
+        <view class="leverage-header">
+          <text class="leverage-label">杠杆倍数</text>
+          <text class="leverage-hint">1 - 150</text>
         </view>
-        <view class="quick-amounts">
-          <view class="amount-btn" bindtap="setQuantity" data-qty="0.01">0.01</view>
-          <view class="amount-btn" bindtap="setQuantity" data-qty="0.1">0.1</view>
-          <view class="amount-btn" bindtap="setQuantity" data-qty="1">1</view>
-          <view class="amount-btn highlight" bindtap="setQuantity" data-qty="{{maxQuantity}}">All</view>
+        <!-- 杠杆数字输入框 -->
+        <view class="lev-input-box">
+          <input
+            class="lev-input"
+            type="number"
+            value="{{leverage}}"
+            bindinput="onLeverageInput"
+            bindblur="onLeverageBlur"
+            placeholder="输入杠杆"
+            maxlength="3"
+          />
+          <text class="lev-input-unit">x</text>
         </view>
       </view>
 
-      <view class="info-grid compact">
-        <view class="info-row">
-          <text class="row-label">{{tradeType === 'buy' ? 'Max Buy' : 'Holdings'}}</text>
-          <text class="row-value">{{maxQuantity}} {{stock.symbol}}</text>
-        </view>
-        <view class="info-row">
-          <text class="row-label">Price</text>
-          <text class="row-value">${{currentPrice}}</text>
-        </view>
-        <view class="info-row">
-          <text class="row-label">Fee (0.1%)</text>
-          <text class="row-value">${{commission}}</text>
-        </view>
-        <view class="info-row total">
-          <text class="row-label">{{tradeType === 'buy' ? 'Total' : 'Receive'}}</text>
-          <text class="row-value primary">${{totalCost}}</text>
+      <!-- 开仓金额输入框（USDT）-->
+      <view class="input-row">
+        <text class="input-hint">开仓金额 (USDT)</text>
+        <view class="input-box">
+          <input
+            class="qty-input"
+            type="digit"
+            value="{{notionalInput}}"
+            bindinput="inputMargin"
+            placeholder="0.00"
+          />
+          <text class="input-unit">USDT</text>
         </view>
       </view>
 
-      <button class="trade-btn {{tradeType}}" disabled="{{!canTrade}}" bindtap="confirmTrade">
-        {{tradeType === 'buy' ? 'Buy' : 'Sell'}} {{stock.symbol}}
+      <!-- 百分比快捷：按余额比例 -->
+      <view class="pct-row">
+        <view class="pct-btn {{pctIndex === 0 ? 'pct-active' : ''}}" bindtap="setPctMargin" data-pct="0.25" data-idx="0">25%</view>
+        <view class="pct-line"></view>
+        <view class="pct-btn {{pctIndex === 1 ? 'pct-active' : ''}}" bindtap="setPctMargin" data-pct="0.5" data-idx="1">50%</view>
+        <view class="pct-line"></view>
+        <view class="pct-btn {{pctIndex === 2 ? 'pct-active' : ''}}" bindtap="setPctMargin" data-pct="0.75" data-idx="2">75%</view>
+        <view class="pct-line"></view>
+        <view class="pct-btn {{pctIndex === 3 ? 'pct-active' : ''}}" bindtap="setPctMargin" data-pct="1" data-idx="3">100%</view>
+      </view>
+
+      <!-- 可用余额 -->
+      <view class="avail-row">
+        <text class="avail-label">可用余额</text>
+        <text class="avail-value">{{userData.cash | 0}} USDT</text>
+      </view>
+
+      <!-- 计算汇总 -->
+      <view class="summary-block">
+        <view class="summary-row">
+          <text class="sum-label">所需保证金</text>
+          <text class="sum-val">{{marginValue}} USDT</text>
+        </view>
+        <view class="summary-row">
+          <text class="sum-label">开仓数量</text>
+          <text class="sum-val">{{openQty}} {{stock.symbol}}</text>
+        </view>
+        <view class="summary-row">
+          <text class="sum-label">手续费</text>
+          <text class="sum-val">{{commission}} USDT</text>
+        </view>
+        <view class="summary-row highlight">
+          <text class="sum-label">预计强平价</text>
+          <text class="sum-val liq-price {{tradeType === 'buy' ? 'down' : 'up'}}">{{liqPrice}}</text>
+        </view>
+      </view>
+
+      <!-- 下单按钮 -->
+      <button
+        class="submit-btn {{tradeType}}"
+        disabled="{{!canTrade}}"
+        bindtap="confirmTrade"
+      >
+        {{tradeType === 'buy' ? '做多' : '做空'}} {{stock.symbol}}  {{leverage}}x
       </button>
+
+    </view>
+
+    <!-- 右：盘口 -->
+    <view class="orderbook-panel">
+      <view class="ob-header">
+        <text class="ob-col-label">价格(USDT)</text>
+        <text class="ob-col-label right">数量</text>
+      </view>
+
+      <!-- 卖单（红，从高到低展示，最接近成交价在底部） -->
+      <view wx:for="{{asks}}" wx:key="index" class="ob-row ask">
+        <text class="ob-price ask-price">{{item.price}}</text>
+        <text class="ob-qty">{{item.qty}}</text>
+      </view>
+
+      <!-- 最新成交价 -->
+      <view class="ob-mid">
+        <text class="ob-mid-price {{priceChangePercent >= 0 ? 'up' : 'down'}}">{{currentPrice}}</text>
+      </view>
+
+      <!-- 买单（绿，从高到低） -->
+      <view wx:for="{{bids}}" wx:key="index" class="ob-row bid">
+        <text class="ob-price bid-price">{{item.price}}</text>
+        <text class="ob-qty">{{item.qty}}</text>
+      </view>
+    </view>
+
+  </view>
+
+  <!-- ③ K线图区（展开状态：内嵌在页面中） -->
+  <view class="kline-section" wx:if="{{klineExpanded}}">
+    <!-- 展开状态的 header -->
+    <view class="kline-header" bindtap="toggleKline">
+      <view class="kline-header-left">
+        <text class="kline-header-title">{{stock.code}} K线图表</text>
+      </view>
+      <text class="kline-toggle-icon expanded">▾</text>
+    </view>
+
+    <!-- 周期选择 -->
+    <view class="interval-bar">
+      <view class="interval-btn {{klineInterval === '5m' ? 'active' : ''}}" bindtap="switchKlineInterval" data-interval="5m">5m</view>
+      <view class="interval-btn {{klineInterval === '15m' ? 'active' : ''}}" bindtap="switchKlineInterval" data-interval="15m">15m</view>
+      <view class="interval-btn {{klineInterval === '30m' ? 'active' : ''}}" bindtap="switchKlineInterval" data-interval="30m">30m</view>
+      <view class="interval-btn {{klineInterval === '1h' ? 'active' : ''}}" bindtap="switchKlineInterval" data-interval="1h">1时</view>
+      <view class="interval-btn {{klineInterval === '4h' ? 'active' : ''}}" bindtap="switchKlineInterval" data-interval="4h">4时</view>
+      <view class="interval-btn {{klineInterval === '8h' ? 'active' : ''}}" bindtap="switchKlineInterval" data-interval="8h">8时</view>
+      <view class="interval-btn {{klineInterval === '1d' ? 'active' : ''}}" bindtap="switchKlineInterval" data-interval="1d">日</view>
+      <view class="interval-btn {{klineInterval === '1w' ? 'active' : ''}}" bindtap="switchKlineInterval" data-interval="1w">周</view>
+      <view class="interval-btn {{klineInterval === '1M' ? 'active' : ''}}" bindtap="switchKlineInterval" data-interval="1M">月</view>
+    </view>
+
+    <!-- MA 值指示行 -->
+    <view class="ma-legend" wx:if="{{showMA5 || showMA10}}">
+      <text class="ma-item ma5" wx:if="{{showMA5}}">MA5</text>
+      <text class="ma-item ma10" wx:if="{{showMA10}}">MA10</text>
+    </view>
+
+    <!-- K线 Canvas -->
+    <view class="kline-wrap">
+      <canvas
+        canvas-id="klineCanvas"
+        class="kline-canvas"
+        bindtouchstart="onTouchKLine"
+        bindtouchmove="onTouchKLine"
+      ></canvas>
+    </view>
+
+    <!-- 指标切换 -->
+    <view class="tools-bar">
+      <view class="tool-btn {{showMA5 ? 'active' : ''}}" bindtap="toggleMA5">MA5</view>
+      <view class="tool-btn {{showMA10 ? 'active' : ''}}" bindtap="toggleMA10">MA10</view>
+      <view class="tool-btn {{showVolume ? 'active' : ''}}" bindtap="toggleVolume">成交量</view>
+    </view>
+
+    <!-- 触摸 OHLC 详情 -->
+    <view class="kline-tooltip" wx:if="{{klineInfo}}">
+      <text class="tooltip-date">{{klineInfo.date}}</text>
+      <view class="tooltip-grid">
+        <view class="tooltip-item">
+          <text class="tooltip-label">开</text>
+          <text class="tooltip-val">{{klineInfo.open}}</text>
+        </view>
+        <view class="tooltip-item">
+          <text class="tooltip-label">高</text>
+          <text class="tooltip-val up">{{klineInfo.high}}</text>
+        </view>
+        <view class="tooltip-item">
+          <text class="tooltip-label">低</text>
+          <text class="tooltip-val down">{{klineInfo.low}}</text>
+        </view>
+        <view class="tooltip-item">
+          <text class="tooltip-label">收</text>
+          <text class="tooltip-val">{{klineInfo.close}}</text>
+        </view>
+        <view class="tooltip-item">
+          <text class="tooltip-label">量</text>
+          <text class="tooltip-val vol">{{klineInfo.volumeStr}}</text>
+        </view>
+      </view>
     </view>
   </view>
+
+  <!-- ④ 持仓区（K线收起时显示） -->
+  <view class="position-section" wx:if="{{!klineExpanded}}">
+
+    <!-- Tab 栏 -->
+    <view class="pos-tabs">
+      <view class="pos-tab {{posTab === 'holding' ? 'pos-tab-active' : ''}}" bindtap="switchPosTab" data-tab="holding">持有仓位 ({{currentPositions.length}})</view>
+      <view class="pos-tab {{posTab === 'orders' ? 'pos-tab-active' : ''}}" bindtap="switchPosTab" data-tab="orders">当前委托 (0)</view>
+    </view>
+
+    <!-- 持有仓位列表 -->
+    <view wx:if="{{posTab === 'holding'}}">
+      <!-- 空仓提示 -->
+      <view class="pos-empty" wx:if="{{currentPositions.length === 0}}">
+        <text class="pos-empty-text">暂无持仓</text>
+      </view>
+      <!-- 持仓卡片 -->
+      <view wx:for="{{currentPositions}}" wx:key="code" class="pos-card">
+        <view class="pos-card-top">
+          <view class="pos-card-left">
+            <text class="pos-code">{{item.code}}</text>
+            <view class="pos-side-badge {{item.tradeType === 'buy' ? 'badge-long' : 'badge-short'}}">{{item.tradeType === 'buy' ? '做多' : '做空'}} {{item.leverage}}x</view>
+          </view>
+          <view class="pos-card-right">
+            <text class="pos-pnl {{item.pnl >= 0 ? 'up' : 'down'}}">{{item.pnl >= 0 ? '+' : ''}}{{item.pnlStr}} USDT</text>
+            <text class="pos-pnl-pct {{item.pnl >= 0 ? 'up' : 'down'}}">({{item.pnlPctStr}}%)</text>
+          </view>
+        </view>
+        <view class="pos-card-body">
+          <view class="pos-info-col">
+            <text class="pos-info-label">数量</text>
+            <text class="pos-info-val">{{item.qtyStr}} {{item.symbol}}</text>
+          </view>
+          <view class="pos-info-col">
+            <text class="pos-info-label">开仓均价</text>
+            <text class="pos-info-val">{{item.avgPriceStr}}</text>
+          </view>
+          <view class="pos-info-col">
+            <text class="pos-info-label">标记价格</text>
+            <text class="pos-info-val">{{currentPrice}}</text>
+          </view>
+          <view class="pos-info-col">
+            <text class="pos-info-label">保证金</text>
+            <text class="pos-info-val">{{item.marginStr}} USDT</text>
+          </view>
+          <view class="pos-info-col">
+            <text class="pos-info-label">强平价</text>
+            <text class="pos-info-val down">{{item.liqPrice}}</text>
+          </view>
+          <view class="pos-info-col">
+            <text class="pos-info-label">名义价值</text>
+            <text class="pos-info-val">{{item.notionalStr}} USDT</text>
+          </view>
+        </view>
+        <!-- 平仓操作栏 -->
+        <view class="pos-close-bar">
+          <view class="pos-close-info">
+            <text class="pos-close-fee-label">平仓手续费</text>
+            <text class="pos-close-fee-val">≈{{item.closeFeeStr}} USDT</text>
+          </view>
+          <view class="pos-close-btn {{item.tradeType === 'buy' ? 'close-sell' : 'close-buy'}}" bindtap="closePosition" data-code="{{item.code}}">
+            {{item.tradeType === 'buy' ? '平多（全部）' : '平空（全部）'}}
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 当前委托（暂无内容） -->
+    <view wx:if="{{posTab === 'orders'}}">
+      <view class="pos-empty">
+        <text class="pos-empty-text">暂无委托</text>
+      </view>
+    </view>
+
+  </view>
+
+  <!-- 收起时的占位（防止吸底栏遮住内容） -->
+  <view class="kline-collapsed-placeholder"></view>
+
+</view>
+
+<!-- 收起状态：吸底栏（固定在页面底部） -->
+<view class="kline-bottom-bar" wx:if="{{!klineExpanded}}" bindtap="toggleKline">
+  <text class="kline-bottom-title">{{stock.code}} 永续 K线图表</text>
+  <text class="kline-bottom-arrow">▲</text>
 </view>
