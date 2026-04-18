@@ -43,7 +43,7 @@
       "disablePlugins": [],
       "outputPath": ""
     },
-    "condition": false,
+    "condition": true,
     "compileWorklet": false,
     "localPlugins": false,
     "disableUseStrict": false,
@@ -53,12 +53,15 @@
   },
   "compileType": "miniprogram",
   "libVersion": "3.15.2",
-  "appid": "wx87902e7d4227cb42",
+  "appid": "wx0c9ac87d595f30b9",
   "projectname": "StockGame",
   "condition": {},
   "editorSetting": {
     "tabIndent": "insertSpaces",
     "tabSize": 2
   },
-  "simulatorPluginLibVersion": {}
+  "simulatorPluginLibVersion": {
+    "wxext14566970e7e9f62": "2.27.3"
+  },
+  "projectArchitecture": "multiPlatform"
 }

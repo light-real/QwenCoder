@@ -55,16 +55,16 @@
   border-color: rgba(59,130,246,0.4);
 }
 
-.filter-btn.active.buy {
-  background: rgba(38,201,122,0.15);
-  color: #26c97a;
-  border-color: rgba(38,201,122,0.35);
+.filter-btn.active.open {
+  background: rgba(14,203,129,0.15);
+  color: #0ecb81;
+  border-color: rgba(14,203,129,0.35);
 }
 
-.filter-btn.active.sell {
-  background: rgba(240,76,90,0.15);
-  color: #f04c5a;
-  border-color: rgba(240,76,90,0.35);
+.filter-btn.active.close {
+  background: rgba(246,70,93,0.15);
+  color: #f6465d;
+  border-color: rgba(246,70,93,0.35);
 }
 
 /* 记录列表 */
@@ -110,20 +110,34 @@
   font-weight: 700;
 }
 
-.type-badge.buy {
-  background: rgba(38,201,122,0.12);
-  color: #26c97a;
+.type-badge.long {
+  background: rgba(14,203,129,0.12);
+  color: #0ecb81;
 }
 
-.type-badge.sell {
-  background: rgba(240,76,90,0.12);
-  color: #f04c5a;
+.type-badge.short {
+  background: rgba(246,70,93,0.12);
+  color: #f6465d;
 }
 
 .card-name-wrap {
   display: flex;
   flex-direction: column;
-  gap: 6rpx;
+  gap: 4rpx;
+}
+
+.card-meta {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.card-leverage {
+  font-size: 20rpx;
+  color: #f0b90b;
+  background: rgba(240,185,11,0.1);
+  padding: 2rpx 10rpx;
+  border-radius: 6rpx;
 }
 
 .card-name {
@@ -150,12 +164,16 @@
   font-weight: 700;
 }
 
-.card-amount.amount-buy {
-  color: #f04c5a;
+.card-amount.amount-open {
+  color: #848e9c;
 }
 
-.card-amount.amount-sell {
-  color: #26c97a;
+.card-amount.amount-profit {
+  color: #0ecb81;
+}
+
+.card-amount.amount-loss {
+  color: #f6465d;
 }
 
 .card-time {

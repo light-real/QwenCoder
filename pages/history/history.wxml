@@ -1,5 +1,5 @@
 <view class="container">
-  <!-- 顶部标题 -->
+  <!-- 顶部标题栏 -->
   <view class="header-card">
     <text class="header-title">交易记录</text>
     <text class="header-count">共 {{history.length}} 笔</text>
@@ -7,75 +7,66 @@
 
   <!-- 筛选 Tab -->
   <view class="filter-section">
-    <view
-      class="filter-btn {{filterType === 'all' ? 'active' : ''}}"
-      bindtap="filterHistory"
-      data-type="all"
-    >全部</view>
-    <view
-      class="filter-btn {{filterType === 'buy' ? 'active buy' : ''}}"
-      bindtap="filterHistory"
-      data-type="buy"
-    >买入</view>
-    <view
-      class="filter-btn {{filterType === 'sell' ? 'active sell' : ''}}"
-      bindtap="filterHistory"
-      data-type="sell"
-    >卖出</view>
+    <view class="filter-btn {{filterType === 'all' ? 'active' : ''}}" bindtap="filterHistory" data-type="all">全部</view>
+    <view class="filter-btn {{filterType === 'open' ? 'active open' : ''}}" bindtap="filterHistory" data-type="open">开仓</view>
+    <view class="filter-btn {{filterType === 'close' ? 'active close' : ''}}" bindtap="filterHistory" data-type="close">平仓</view>
   </view>
 
   <!-- 记录列表 -->
   <view class="history-list">
     <block wx:if="{{filteredHistory.length > 0}}">
-      <view
-        wx:for="{{filteredHistory}}"
-        wx:key="index"
-        class="history-card"
-      >
+      <view wx:for="{{filteredHistory}}" wx:key="index" class="history-card">
+
         <!-- 卡片头部 -->
         <view class="card-header">
           <view class="card-left">
-            <view class="type-badge {{item.type}}">
-              {{item.type === 'buy' ? '买入' : '卖出'}}
-            </view>
+            <view class="type-badge {{item.typeClass}}">{{item.typeLabel}}</view>
             <view class="card-name-wrap">
               <text class="card-name">{{item.name}}</text>
-              <text class="card-code">{{item.code}}</text>
+              <view class="card-meta">
+                <text class="card-code">{{item.code}}</text>
+                <text class="card-leverage">{{item.leverageStr}}</text>
+              </view>
             </view>
           </view>
           <view class="card-right">
-            <text class="card-amount {{item.type === 'buy' ? 'amount-buy' : 'amount-sell'}}">
-              {{item.type === 'buy' ? '-' : '+'}}${{item.amount}}
-            </text>
+            <text class="card-amount {{item.amountClass}}">{{item.amountVal}}</text>
             <text class="card-time">{{item.time}}</text>
           </view>
         </view>
 
-        <!-- 卡片底部详情 -->
+        <!-- 分割线 -->
         <view class="card-divider"></view>
+
+        <!-- 卡片底部详情 -->
         <view class="card-stats">
           <view class="card-stat">
             <text class="stat-label">数量</text>
-            <text class="stat-value">{{item.quantity}}</text>
+            <text class="stat-value">{{item.qtyStr}} {{item.symbol}}</text>
           </view>
           <view class="card-stat">
             <text class="stat-label">成交价</text>
-            <text class="stat-value">${{item.price}}</text>
+            <text class="stat-value">{{item.priceStr}} USDT</text>
           </view>
-          <view class="card-stat" wx:if="{{item.type === 'sell' && item.profit !== undefined}}">
-            <text class="stat-label">盈亏</text>
-            <text class="stat-value {{item.profit >= 0 ? 'pnl-up' : 'pnl-down'}}">
-              {{item.profit >= 0 ? '+' : ''}}${{item.profit}}
-            </text>
+          <!-- 开仓：显示名义价值 -->
+          <view class="card-stat" wx:if="{{item.type === 'buy' || item.type === 'sell'}}">
+            <text class="stat-label">名义价值</text>
+            <text class="stat-value">{{item.notionalStr}} USDT</text>
+          </view>
+          <!-- 平仓：显示平仓手续费 -->
+          <view class="card-stat" wx:if="{{item.type === 'close_buy' || item.type === 'close_sell'}}">
+            <text class="stat-label">手续费</text>
+            <text class="stat-value">{{item.closeFeeStr}} USDT</text>
           </view>
         </view>
+
       </view>
     </block>
 
     <block wx:else>
       <view class="empty-wrap">
         <text class="empty-icon">📋</text>
-        <text class="empty-text">暂无{{filterType === 'buy' ? '买入' : filterType === 'sell' ? '卖出' : ''}}记录</text>
+        <text class="empty-text">暂无{{filterType === 'open' ? '开仓' : filterType === 'close' ? '平仓' : ''}}记录</text>
         <text class="empty-hint">完成第一笔交易后在此查看</text>
       </view>
     </block>

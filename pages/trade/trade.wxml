@@ -83,7 +83,7 @@
       <!-- 可用余额 -->
       <view class="avail-row">
         <text class="avail-label">可用余额</text>
-        <text class="avail-value">{{userData.cash | 0}} USDT</text>
+        <text class="avail-value">{{cashDisplay}} USDT</text>
       </view>
 
       <!-- 计算汇总 -->

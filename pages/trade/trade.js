@@ -25,6 +25,7 @@ Page({
     notionalInput: '',   // 用户输入的开仓金额
 
     // 计算结果展示
+    cashDisplay: '0.00',     // 可用余额（格式化2位小数，仅用于显示）
     marginValue: '0.00',     // 所需保证金 = 开仓金额 / 杠杆
     openQty: '0.000000',     // 开仓数量（币）= 名义价值 / 价格
     commission: '0.00',      // 手续费 = 名义价值 × 0.05%
@@ -74,6 +75,7 @@ Page({
     this.setData({
       stock,
       userData,
+      cashDisplay: parseFloat(userData.cash || 0).toFixed(2),
       notionalInput: '',
       currentPrice: stock.currentPrice,
       priceChange: 0,
@@ -153,7 +155,10 @@ Page({
 
   onShow() {
     const userData = app.getUserData();
-    this.setData({ userData }, () => {
+    this.setData({
+      userData,
+      cashDisplay: parseFloat(userData.cash || 0).toFixed(2),
+    }, () => {
       this.calculateCost();
     });
   },
@@ -428,7 +433,7 @@ Page({
     this.setData({
       marginValue: margin.toFixed(2),
       openQty: qty.toFixed(6),
-      commission: fee.toFixed(4),
+      commission: fee.toFixed(2),
       liqPrice: liqPriceStr,
       leverageRisk,
       canTrade,
@@ -536,8 +541,10 @@ Page({
     app.updateUserData(userData);
 
     // 下单成功后留在当前页面，刷新数据
+    const freshUserData = app.getUserData();
     this.setData({
-      userData: app.getUserData(),
+      userData: freshUserData,
+      cashDisplay: parseFloat(freshUserData.cash || 0).toFixed(2),
       notionalInput: '',
       pctIndex: -1,
     });
@@ -666,7 +673,11 @@ Page({
 
         app.updateUserData(userData);
 
-        this.setData({ userData: app.getUserData() });
+        const latestUserData = app.getUserData();
+        this.setData({
+          userData: latestUserData,
+          cashDisplay: parseFloat(latestUserData.cash || 0).toFixed(2),
+        });
         this.refreshPositions(price);
 
         const toast = pnlNet >= 0 ? `盈利 +${pnlNet.toFixed(2)} USDT` : `亏损 ${pnlNet.toFixed(2)} USDT`;
