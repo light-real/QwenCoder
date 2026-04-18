@@ -1,6 +1,9 @@
 const app = getApp();
 const stockUtil = require('../../utils/stock.js');
 const dateUtil = require('../../utils/date.js');
+const binanceService = require('../../utils/binanceService.js');
+const ChartHelper = require('../../utils/chartHelper.js');
+const formatData = require('../../utils/formatData.js');
 
 Page({
   data: {
@@ -14,7 +17,17 @@ Page({
     canTrade: false,
     klineData: [],
     klineInfo: null,
+    currentPrice: 0,
+    priceChange: 0,
+    priceChangePercent: 0,
+    showVolume: false,
+    showMA5: false,
+    showMA10: false,
+    klineInterval: '1m'
   },
+
+  chartHelper: null,
+  currentSymbol: null,
 
   onLoad(options) {
     const code = options.code;
@@ -24,21 +37,63 @@ Page({
     const existingStock = userData.stocks.find(s => s.code === code);
     const maxQuantity = existingStock ? existingStock.quantity : Math.floor(userData.cash / stock.currentPrice);
     
-    const klineData = stockUtil.generateKLineData(code, 30);
-    
     this.setData({
       stock,
       userData,
       maxQuantity,
       quantity: 0,
-      klineData: klineData,
+      currentPrice: stock.currentPrice,
+      priceChange: 0,
+      priceChangePercent: 0
     });
+
+    this.currentSymbol = code;
+    this.initChart();
+    this.loadKlineData(code);
+    this.initWebSocket(code);
+  },
+
+  async loadKlineData(code) {
+    try {
+      console.log('📊 Loading klines for', code, 'interval:', this.data.klineInterval);
+      wx.showLoading({
+        title: 'Loading...',
+        mask: true
+      });
+
+      const klines = await binanceService.fetchKlines(code, this.data.klineInterval, 30);
+      
+      console.log('📈 Received', klines.length, 'klines');
+      
+      this.setData({
+        klineData: klines
+      });
+      
+      console.log('🎨 Data set to view, drawing chart...');
+      this.drawKLine();
+      
+      wx.hideLoading();
+      console.log('✅ Chart drawn');
+    } catch (err) {
+      wx.hideLoading();
+      console.error('❌ Failed to load kline data:', err);
+      wx.showToast({
+        title: 'Failed to load chart',
+        icon: 'none'
+      });
+    }
+  },
+
+  onReady() {
+    setTimeout(() => {
+      this.drawKLine();
+    }, 200);
   },
 
   onShow() {
     const userData = app.getUserData();
     const existingStock = userData.stocks.find(s => s.code === this.data.stock.code);
-    const maxQuantity = existingStock ? existingStock.quantity : Math.floor(userData.cash / this.data.stock.currentPrice);
+    const maxQuantity = existingStock ? existingStock.quantity : Math.floor(userData.cash / this.data.currentPrice);
     
     this.setData({
       userData,
@@ -48,91 +103,157 @@ Page({
     this.calculateCost();
   },
 
-  onReady() {
-    setTimeout(() => {
-      this.drawKLine();
-    }, 200);
+  onUnload() {
+    this.closeWebSocket();
+  },
+
+  initChart() {
+    const ctx = wx.createCanvasContext('klineCanvas', this);
+    this.chartHelper = new ChartHelper('klineCanvas').init(ctx);
+  },
+
+  initWebSocket(code) {
+    binanceService.on('ticker', (ticker) => {
+      this.handleTickerUpdate(ticker);
+    });
+
+    binanceService.on('kline', (kline) => {
+      this.handleKlineUpdate(kline);
+    });
+
+    binanceService.on('klineClosed', (kline) => {
+      this.handleKlineClosed(kline);
+    });
+
+    const symbol = code.toLowerCase();
+    binanceService.connect([symbol], [this.data.klineInterval])
+      .catch((err) => {
+        console.error('✗ Failed to initialize WebSocket:', err);
+      });
+  },
+
+  handleTickerUpdate(ticker) {
+    const stockCode = this.data.stock.code.toUpperCase();
+    if (ticker.symbol !== stockCode) return;
+
+    const price = ticker.closePrice;
+    const change = ticker.priceChange;
+    const changePercent = parseFloat(ticker.priceChangePercent);
+
+    this.setData({
+      currentPrice: price,
+      priceChange: change,
+      priceChangePercent: changePercent
+    });
+
+    if (this.data.stock) {
+      this.setData({
+        'stock.currentPrice': price,
+        'stock.change': changePercent
+      });
+    }
+
+    this.calculateCost();
+  },
+
+  handleKlineUpdate(kline) {
+    const stockCode = this.data.stock.code.toUpperCase();
+    if (kline.symbol !== stockCode) return;
+    if (kline.interval !== this.data.klineInterval) return;
+
+    const klineItem = kline;
+    let klineData = this.data.klineData;
+
+    if (klineData.length > 0) {
+      const lastKline = klineData[klineData.length - 1];
+      
+      if (klineItem.time - lastKline.time < 60000) {
+        klineData[klineData.length - 1] = klineItem;
+      } else {
+        klineData.push(klineItem);
+        
+        if (klineData.length > 30) {
+          klineData = klineData.slice(-30);
+        }
+      }
+    } else {
+      klineData.push(klineItem);
+    }
+
+    this.setData({
+      klineData: klineData
+    });
+
+    if (this.chartHelper) {
+      this.chartHelper.setData(klineData);
+      wx.getSystemInfo({
+        success: (sysInfo) => {
+          const width = sysInfo.windowWidth;
+          const height = 300;
+          this.chartHelper.setDimensions(width, height);
+          this.chartHelper.render({
+            showVolume: this.data.showVolume,
+            showMA5: this.data.showMA5,
+            showMA10: this.data.showMA10
+          });
+        }
+      });
+    }
+  },
+
+  handleKlineClosed(kline) {
+    const stockCode = this.data.stock.code.toUpperCase();
+    if (kline.symbol !== stockCode) return;
+    
+    console.log('✓ Kline closed:', kline);
+
+    let klineData = this.data.klineData;
+    klineData.push(kline);
+    
+    if (klineData.length > 30) {
+      klineData = klineData.slice(-30);
+    }
+
+    this.setData({
+      klineData: klineData
+    });
+
+    this.drawKLine();
+  },
+
+  handleTradeUpdate(trade) {
+    const stockCode = this.data.stock.code.toUpperCase();
+    if (trade.symbol !== stockCode) return;
+    
+    console.log('📊 New trade:', formatData.formatPrice(trade.price), 'Qty:', formatData.formatVolume(trade.quantity));
+  },
+
+  closeWebSocket() {
+    binanceService.close();
   },
 
   drawKLine() {
     const klineData = this.data.klineData;
     if (!klineData || klineData.length === 0) {
-      console.log('No kline data');
       return;
     }
-    
-    const ctx = wx.createCanvasContext('klineCanvas', this);
-    
+
+    if (!this.chartHelper) {
+      this.initChart();
+    }
+
     wx.getSystemInfo({
       success: (sysInfo) => {
         const width = sysInfo.windowWidth;
         const height = 300;
-        const padding = { top: 20, right: 20, bottom: 40, left: 60 };
-        const chartWidth = width - padding.left - padding.right;
-        const chartHeight = height - padding.top - padding.bottom;
         
-        const prices = klineData.map(d => Math.max(d.high, d.low));
-        const maxPrice = Math.max(...prices);
-        const minPrice = Math.min(...prices);
-        const priceRange = maxPrice - minPrice || 1;
-        
-        const candleWidth = chartWidth / klineData.length * 0.6;
-        const gap = chartWidth / klineData.length * 0.4;
-        
-        ctx.setFillStyle('#18181b');
-        ctx.fillRect(0, 0, width, height);
-        
-        for (let i = 0; i <= 4; i++) {
-          const y = padding.top + (chartHeight / 4) * i;
-          ctx.setStrokeStyle('#3f3f46');
-          ctx.setLineWidth(1);
-          ctx.beginPath();
-          ctx.moveTo(padding.left, y);
-          ctx.lineTo(width - padding.right, y);
-          ctx.stroke();
-          
-          const price = maxPrice - (priceRange / 4) * i;
-          ctx.setFillStyle('#71717a');
-          ctx.setFontSize(10);
-          ctx.setTextAlign('right');
-          ctx.fillText(price.toFixed(2), padding.left - 5, y + 4);
-        }
-        
-        for (let i = 0; i < klineData.length; i++) {
-          if (i % 5 === 0) {
-            const x = padding.left + i * (candleWidth + gap) + candleWidth / 2;
-            ctx.setFillStyle('#71717a');
-            ctx.setFontSize(10);
-            ctx.setTextAlign('center');
-            ctx.fillText(klineData[i].date, x, height - 10);
-          }
-          
-          const d = klineData[i];
-          const x = padding.left + i * (candleWidth + gap) + gap / 2;
-          
-          const isUp = d.close >= d.open;
-          const color = isUp ? '#22c55e' : '#ef4444';
-          
-          const openY = padding.top + chartHeight - ((d.open - minPrice) / priceRange * chartHeight);
-          const closeY = padding.top + chartHeight - ((d.close - minPrice) / priceRange * chartHeight);
-          const highY = padding.top + chartHeight - ((d.high - minPrice) / priceRange * chartHeight);
-          const lowY = padding.top + chartHeight - ((d.low - minPrice) / priceRange * chartHeight);
-          
-          ctx.setStrokeStyle(color);
-          ctx.setLineWidth(1);
-          ctx.beginPath();
-          ctx.moveTo(x + candleWidth / 2, highY);
-          ctx.lineTo(x + candleWidth / 2, lowY);
-          ctx.stroke();
-          
-          const bodyTop = Math.min(openY, closeY);
-          const bodyHeight = Math.max(Math.abs(closeY - openY), 2);
-          
-          ctx.setFillStyle(color);
-          ctx.fillRect(x, bodyTop, candleWidth, bodyHeight);
-        }
-        
-        ctx.draw();
+        this.chartHelper.setData(klineData);
+        this.chartHelper.setDimensions(width, height);
+        this.chartHelper.render({
+          showVolume: this.data.showVolume,
+          showMA5: this.data.showMA5,
+          showMA10: this.data.showMA10
+        });
       }
     });
   },
@@ -142,24 +263,15 @@ Page({
     if (!klineData || klineData.length === 0) return;
     
     const x = e.touches[0].x;
-    
-    wx.getSystemInfo({
-      success: (sysInfo) => {
-        const width = sysInfo.windowWidth;
-        const padding = { left: 60, right: 20 };
-        const chartWidth = width - padding.left - padding.right;
-        const candleWidth = chartWidth / klineData.length * 0.6;
-        const gap = chartWidth / klineData.length * 0.4;
-        
-        const index = Math.floor((x - padding.left) / (candleWidth + gap));
-        
-        if (index >= 0 && index < klineData.length) {
-          this.setData({
-            klineInfo: klineData[index],
-          });
-        }
+
+    if (this.chartHelper) {
+      const result = this.chartHelper.getDataAtX(x);
+      if (result) {
+        this.setData({
+          klineInfo: result.data,
+        });
       }
-    });
+    }
   },
 
   switchTradeType(e) {
@@ -173,21 +285,21 @@ Page({
   },
 
   inputQuantity(e) {
-    const quantity = parseInt(e.detail.value) || 0;
+    const quantity = parseFloat(e.detail.value) || 0;
     this.setData({ quantity });
     this.calculateCost();
   },
 
   setQuantity(e) {
-    const quantity = parseInt(e.currentTarget.dataset.qty);
+    const quantity = parseFloat(e.currentTarget.dataset.qty);
     this.setData({ quantity });
     this.calculateCost();
   },
 
   calculateCost() {
-    const { stock, quantity, tradeType } = this.data;
+    const { currentPrice, quantity, tradeType } = this.data;
     
-    if (quantity <= 0) {
+    if (quantity <= 0 || currentPrice <= 0) {
       this.setData({
         totalCost: 0,
         commission: 0,
@@ -197,28 +309,34 @@ Page({
     }
     
     if (tradeType === 'buy') {
-      const costInfo = stockUtil.buyStock(stock.code, quantity, stock.currentPrice);
+      const total = currentPrice * quantity;
+      const commission = total * 0.001;
+      const totalCost = total + commission;
+      
       this.setData({
-        totalCost: costInfo.totalCost,
-        commission: costInfo.commission,
-        canTrade: costInfo.totalCost <= this.data.userData.cash,
+        totalCost: totalCost.toFixed(2),
+        commission: commission.toFixed(2),
+        canTrade: totalCost <= this.data.userData.cash,
       });
     } else {
-      const costInfo = stockUtil.sellStock(stock.code, quantity, stock.currentPrice);
+      const totalAmount = currentPrice * quantity;
+      const commission = totalAmount * 0.001;
+      const totalReceived = totalAmount - commission;
+      
       this.setData({
-        totalCost: costInfo.totalAmount,
-        commission: costInfo.commission,
+        totalCost: totalReceived.toFixed(2),
+        commission: commission.toFixed(2),
         canTrade: quantity <= this.data.maxQuantity,
       });
     }
   },
 
   confirmTrade() {
-    const { stock, quantity, tradeType, totalCost } = this.data;
+    const { stock, quantity, tradeType, totalCost, currentPrice } = this.data;
     
     if (quantity <= 0) {
       wx.showToast({
-        title: 'Enter quantity',
+        title: 'Please enter quantity',
         icon: 'none',
       });
       return;
@@ -233,20 +351,21 @@ Page({
     }
     
     const action = tradeType === 'buy' ? 'buy' : 'sell';
-    const msg = `Confirm ${action} ${quantity} shares of ${stock.name}?`;
+    const priceStr = formatData.formatPrice(currentPrice);
+    const msg = `Confirm ${action} ${quantity} ${stock.symbol} at ${priceStr}?`;
     
     wx.showModal({
       title: 'Confirm Trade',
       content: msg,
       success: (res) => {
         if (res.confirm) {
-          this.executeTrade(stock, quantity, tradeType, totalCost);
+          this.executeTrade(stock, quantity, tradeType, parseFloat(totalCost), currentPrice);
         }
       },
     });
   },
 
-  executeTrade(stock, quantity, tradeType, totalCost) {
+  executeTrade(stock, quantity, tradeType, totalCost, currentPrice) {
     let userData = app.getUserData();
     const now = dateUtil.getCurrentDateTime();
     
@@ -257,21 +376,22 @@ Page({
       if (existingIndex > -1) {
         const existing = userData.stocks[existingIndex];
         const totalQuantity = existing.quantity + quantity;
-        const newCost = existing.cost + stock.currentPrice * quantity;
+        const newCost = existing.cost + currentPrice * quantity;
         userData.stocks[existingIndex] = {
           ...existing,
           quantity: totalQuantity,
           cost: newCost,
-          currentPrice: stock.currentPrice,
+          currentPrice: currentPrice,
         };
       } else {
         userData.stocks.push({
           code: stock.code,
           name: stock.name,
+          symbol: stock.symbol,
           quantity: quantity,
-          cost: stock.currentPrice * quantity,
-          currentPrice: stock.currentPrice,
-          buyPrice: stock.currentPrice,
+          cost: currentPrice * quantity,
+          currentPrice: currentPrice,
+          buyPrice: currentPrice,
         });
       }
       
@@ -279,21 +399,21 @@ Page({
         type: 'buy',
         code: stock.code,
         name: stock.name,
+        symbol: stock.symbol,
         quantity: quantity,
-        price: stock.currentPrice,
+        price: currentPrice,
         amount: totalCost,
         time: now,
       });
       
     } else {
-      const sellInfo = stockUtil.sellStock(stock.code, quantity, stock.currentPrice);
-      userData.cash += sellInfo.totalAmount;
+      userData.cash += totalCost;
       
       const existingIndex = userData.stocks.findIndex(s => s.code === stock.code);
       if (existingIndex > -1) {
         const existing = userData.stocks[existingIndex];
         existing.quantity -= quantity;
-        existing.currentPrice = stock.currentPrice;
+        existing.currentPrice = currentPrice;
         
         if (existing.quantity <= 0) {
           userData.stocks.splice(existingIndex, 1);
@@ -304,10 +424,11 @@ Page({
         type: 'sell',
         code: stock.code,
         name: stock.name,
+        symbol: stock.symbol,
         quantity: quantity,
-        price: stock.currentPrice,
-        amount: sellInfo.totalAmount,
-        profit: sellInfo.totalAmount - (stock.currentPrice * quantity),
+        price: currentPrice,
+        amount: totalCost,
+        profit: totalCost - (currentPrice * quantity),
         time: now,
       });
     }
@@ -327,4 +448,54 @@ Page({
       wx.navigateBack();
     }, 1500);
   },
+
+  switchKlineInterval(e) {
+    const interval = e.currentTarget.dataset.interval;
+    
+    console.log('🔄 Switching interval:', interval, 'current:', this.data.klineInterval);
+    
+    if (interval === this.data.klineInterval) {
+      console.log('⚠️ Same interval, skip');
+      return;
+    }
+    
+    console.log('✅ Changing to interval:', interval);
+    
+    this.setData({
+      klineInterval: interval,
+      klineData: [],
+      klineInfo: null
+    });
+
+    const symbol = this.data.stock.code;
+    console.log('📡 Symbol:', symbol, 'Interval:', interval);
+    binanceService.reconnect([symbol.toLowerCase()], [interval]);
+    this.loadKlineData(symbol);
+  },
+
+  toggleVolume() {
+    this.setData({
+      showVolume: !this.data.showVolume
+    });
+    this.drawKLine();
+  },
+
+  toggleMA5() {
+    this.setData({
+      showMA5: !this.data.showMA5
+    });
+    this.drawKLine();
+  },
+
+  toggleMA10() {
+    this.setData({
+      showMA10: !this.data.showMA10
+    });
+    this.drawKLine();
+  },
+
+  reconnectWebSocket() {
+    const symbol = this.data.stock.code.toLowerCase();
+    binanceService.reconnect([symbol], [this.data.klineInterval]);
+  }
 })

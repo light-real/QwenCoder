@@ -21,19 +21,19 @@ A clean and beautiful stock trading simulation game for WeChat Mini Program.
 
 ```
 StockGame/
-©À©¤©¤ app.js              # Application entry
-©À©¤©¤ app.json            # Application config
-©À©¤©¤ app.wxss            # Global styles
-©À©¤©¤ pages/
-©¦   ©À©¤©¤ index/         # Market page
-©¦   ©À©¤©¤ trade/         # Trading page
-©¦   ©À©¤©¤ portfolio/     # Portfolio page
-©¦   ©À©¤©¤ history/       # History page
-©¦   ©¸©¤©¤ rank/          # Ranking page
-©À©¤©¤ utils/
-©¦   ©À©¤©¤ stock.js       # Stock utilities
-©¦   ©¸©¤©¤ date.js        # Date formatting
-©¸©¤©¤ sitemap.json       # SEO config
+ app.js              # Application entry
+ app.json            # Application config
+ app.wxss            # Global styles
+ pages/
+    index/         # Market page
+    trade/         # Trading page
+    portfolio/     # Portfolio page
+    history/       # History page
+    rank/          # Ranking page
+ utils/
+    stock.js       # Stock utilities
+    date.js        # Date formatting
+ sitemap.json       # SEO config
 ```
 
 ## Quick Start

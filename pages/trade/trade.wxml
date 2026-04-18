@@ -1,88 +1,116 @@
 <view class="container">
-  <view class="header">
-    <view class="stock-header">
-      <view class="stock-name">{{stock.name}}</view>
-      <view class="stock-code">{{stock.code}} - {{stock.industry}}</view>
+  <view class="header-card">
+    <view class="symbol-info">
+      <view class="symbol-name">{{stock.name}}</view>
+      <view class="symbol-code">{{stock.code}}</view>
     </view>
-    <view class="stock-price">
-      <view class="current-price">{{stock.currentPrice}}</view>
-      <view class="change {{stock.change >= 0 ? 'change-up' : 'change-down'}}">
-        {{stock.change >= 0 ? '+' : ''}}{{stock.change}}%
+    
+    <view class="price-section">
+      <view class="current-price">${{currentPrice}}</view>
+      <view class="price-change {{priceChangePercent >= 0 ? 'positive' : 'negative'}}">
+        {{priceChangePercent >= 0 ? '¡ü' : '¡ý'}} {{priceChangePercent >= 0 ? '+' : ''}}{{priceChangePercent}}%
       </view>
     </view>
   </view>
 
-  <view class="kline-container">
+  <view class="kline-card">
     <view class="kline-header">
-      <view class="kline-title">K Line Chart</view>
-      <view class="kline-range">30 Days</view>
+      <view class="kline-title">
+        <text class="title-text">Price Chart</text>
+      </view>
+      <view class="interval-group">
+        <view class="interval-btn {{klineInterval === '1m' ? 'active' : ''}}" bindtap="switchKlineInterval" data-interval="1m">1m</view>
+        <view class="interval-btn {{klineInterval === '5m' ? 'active' : ''}}" bindtap="switchKlineInterval" data-interval="5m">5m</view>
+        <view class="interval-btn {{klineInterval === '15m' ? 'active' : ''}}" bindtap="switchKlineInterval" data-interval="15m">15m</view>
+        <view class="interval-btn {{klineInterval === '1h' ? 'active' : ''}}" bindtap="switchKlineInterval" data-interval="1h">1h</view>
+        <view class="interval-btn {{klineInterval === '4h' ? 'active' : ''}}" bindtap="switchKlineInterval" data-interval="4h">4h</view>
+        <view class="interval-btn {{klineInterval === '1d' ? 'active' : ''}}" bindtap="switchKlineInterval" data-interval="1d">1D</view>
+        <view class="interval-btn {{klineInterval === '1w' ? 'active' : ''}}" bindtap="switchKlineInterval" data-interval="1w">1W</view>
+        <view class="interval-btn {{klineInterval === '1M' ? 'active' : ''}}" bindtap="switchKlineInterval" data-interval="1M">1M</view>
+      </view>
+      <view class="tools-group">
+        <view class="tool-btn {{showMA5 ? 'active' : ''}}" bindtap="toggleMA5">MA5</view>
+        <view class="tool-btn {{showMA10 ? 'active' : ''}}" bindtap="toggleMA10">MA10</view>
+        <view class="tool-btn {{showVolume ? 'active' : ''}}" bindtap="toggleVolume">VOL</view>
+      </view>
     </view>
-    <canvas 
-      canvas-id="klineCanvas" 
-      class="kline-canvas"
-      bindtouchstart="onTouchKLine"
-      bindtouchmove="onTouchKLine"
-    ></canvas>
-    <view class="kline-info" wx:if="{{klineInfo}}">
-      <view class="kline-date">{{klineInfo.date}}</view>
-      <view class="kline-detail">
-        <view class="kline-item">O: {{klineInfo.open}}</view>
-        <view class="kline-item">H: {{klineInfo.high}}</view>
-        <view class="kline-item">L: {{klineInfo.low}}</view>
-        <view class="kline-item">C: {{klineInfo.close}}</view>
+    
+    <view class="kline-chart-wrapper">
+      <canvas canvas-id="klineCanvas" class="kline-canvas" bindtouchstart="onTouchKLine" bindtouchmove="onTouchKLine"></canvas>
+    </view>
+    
+    <view class="kline-info-panel" wx:if="{{klineInfo}}">
+      <view class="info-grid">
+        <view class="info-item">
+          <text class="info-label">Date</text>
+          <text class="info-value">{{klineInfo.date}}</text>
+        </view>
+        <view class="info-item">
+          <text class="info-label">Open</text>
+          <text class="info-value">{{klineInfo.open}}</text>
+        </view>
+        <view class="info-item">
+          <text class="info-label">High</text>
+          <text class="info-value high">{{klineInfo.high}}</text>
+        </view>
+        <view class="info-item">
+          <text class="info-label">Low</text>
+          <text class="info-value low">{{klineInfo.low}}</text>
+        </view>
+        <view class="info-item">
+          <text class="info-label">Close</text>
+          <text class="info-value">{{klineInfo.close}}</text>
+        </view>
       </view>
     </view>
   </view>
 
-  <view class="trade-section">
-    <view class="trade-type">
-      <view class="type-btn {{tradeType === 'buy' ? 'active-buy' : ''}}" 
-            bindtap="switchTradeType" data-type="buy">Buy</view>
-      <view class="type-btn {{tradeType === 'sell' ? 'active-sell' : ''}}" 
-            bindtap="switchTradeType" data-type="sell">Sell</view>
-    </view>
-
-    <view class="quantity-section">
-      <view class="label">Quantity (lots)</view>
-      <view class="input-wrapper">
-        <input type="number" 
-               value="{{quantity}}" 
-               bindinput="inputQuantity" 
-               placeholder="Enter quantity"
-               class="quantity-input"/>
-        <text class="unit">lots</text>
+  <view class="trade-card">
+    <view class="trade-tabs">
+      <view class="trade-tab {{tradeType === 'buy' ? 'active buy' : ''}}" bindtap="switchTradeType" data-type="buy">
+        <text>Buy</text>
       </view>
-      <view class="quick-btns">
-        <view class="quick-btn" bindtap="setQuantity" data-qty="1">1 lot</view>
-        <view class="quick-btn" bindtap="setQuantity" data-qty="5">5 lots</view>
-        <view class="quick-btn" bindtap="setQuantity" data-qty="10">10 lots</view>
-        <view class="quick-btn" bindtap="setQuantity" data-qty="{{maxQuantity}}">All</view>
+      <view class="trade-tab {{tradeType === 'sell' ? 'active sell' : ''}}" bindtap="switchTradeType" data-type="sell">
+        <text>Sell</text>
       </view>
     </view>
 
-    <view class="info-section">
-      <view class="info-row">
-        <text class="info-label">{{tradeType === 'buy' ? 'Can Buy' : 'Can Sell'}}</text>
-        <text class="info-value">{{maxQuantity}} lots</text>
+    <view class="trade-form">
+      <view class="form-group">
+        <view class="form-label">Quantity ({{stock.symbol}})</view>
+        <view class="input-wrapper">
+          <input type="digit" value="{{quantity}}" bindinput="inputQuantity" placeholder="0.00" class="form-input"/>
+        </view>
+        <view class="quick-amounts">
+          <view class="amount-btn" bindtap="setQuantity" data-qty="0.01">0.01</view>
+          <view class="amount-btn" bindtap="setQuantity" data-qty="0.1">0.1</view>
+          <view class="amount-btn" bindtap="setQuantity" data-qty="1">1</view>
+          <view class="amount-btn highlight" bindtap="setQuantity" data-qty="{{maxQuantity}}">All</view>
+        </view>
       </view>
-      <view class="info-row">
-        <text class="info-label">Current Price</text>
-        <text class="info-value">{{stock.currentPrice}}</text>
-      </view>
-      <view class="info-row">
-        <text class="info-label">Fees</text>
-        <text class="info-value">{{commission}}</text>
-      </view>
-      <view class="info-row total">
-        <text class="info-label">{{tradeType === 'buy' ? 'Total Cost' : 'Total Amount'}}</text>
-        <text class="info-value primary">{{totalCost}}</text>
-      </view>
-    </view>
 
-    <button class="btn {{tradeType === 'buy' ? 'btn-buy' : 'btn-sell'}}" 
-            bindtap="confirmTrade"
-            disabled="{{!canTrade}}">
-      {{tradeType === 'buy' ? 'Confirm Buy' : 'Confirm Sell'}}
-    </button>
+      <view class="info-grid compact">
+        <view class="info-row">
+          <text class="row-label">{{tradeType === 'buy' ? 'Max Buy' : 'Holdings'}}</text>
+          <text class="row-value">{{maxQuantity}} {{stock.symbol}}</text>
+        </view>
+        <view class="info-row">
+          <text class="row-label">Price</text>
+          <text class="row-value">${{currentPrice}}</text>
+        </view>
+        <view class="info-row">
+          <text class="row-label">Fee (0.1%)</text>
+          <text class="row-value">${{commission}}</text>
+        </view>
+        <view class="info-row total">
+          <text class="row-label">{{tradeType === 'buy' ? 'Total' : 'Receive'}}</text>
+          <text class="row-value primary">${{totalCost}}</text>
+        </view>
+      </view>
+
+      <button class="trade-btn {{tradeType}}" disabled="{{!canTrade}}" bindtap="confirmTrade">
+        {{tradeType === 'buy' ? 'Buy' : 'Sell'}} {{stock.symbol}}
+      </button>
+    </view>
   </view>
 </view>
