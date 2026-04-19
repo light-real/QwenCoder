@@ -1,0 +1,80 @@
+{
+  "pages": [
+    {
+      "path": "pages/auth/auth",
+      "style": {
+        "navigationBarTitleText": "登录 / 注册",
+        "navigationBarBackgroundColor": "#0a0b0d",
+        "navigationBarTextStyle": "white",
+        "backgroundColor": "#0a0b0d"
+      }
+    },
+    {
+      "path": "pages/index/index",
+      "style": {
+        "navigationBarTitleText": "行情",
+        "navigationBarBackgroundColor": "#0f0f1a",
+        "navigationBarTextStyle": "white",
+        "backgroundColor": "#0a0b0d"
+      }
+    },
+    {
+      "path": "pages/trade/trade",
+      "style": {
+        "navigationBarTitleText": "合约交易",
+        "navigationBarBackgroundColor": "#1e2329",
+        "navigationBarTextStyle": "white",
+        "backgroundColor": "#161a1e"
+      }
+    },
+    {
+      "path": "pages/history/history",
+      "style": {
+        "navigationBarTitleText": "交易记录",
+        "navigationBarBackgroundColor": "#0f0f1a",
+        "navigationBarTextStyle": "white",
+        "backgroundColor": "#0a0b0d"
+      }
+    },
+    {
+      "path": "pages/profile/profile",
+      "style": {
+        "navigationBarTitleText": "我的",
+        "navigationBarBackgroundColor": "#0a0b0d",
+        "navigationBarTextStyle": "white",
+        "backgroundColor": "#0a0b0d"
+      }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "white",
+    "navigationBarBackgroundColor": "#0f0f1a",
+    "backgroundColor": "#0a0b0d"
+  },
+  "tabBar": {
+    "color": "#666680",
+    "selectedColor": "#3b82f6",
+    "backgroundColor": "#0f0f1a",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "行情",
+        "iconPath": "static/market.png",
+        "selectedIconPath": "static/market-active.png"
+      },
+      {
+        "pagePath": "pages/history/history",
+        "text": "记录",
+        "iconPath": "static/history.png",
+        "selectedIconPath": "static/history-active.png"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的",
+        "iconPath": "static/portfolio.png",
+        "selectedIconPath": "static/portfolio-active.png"
+      }
+    ]
+  }
+}

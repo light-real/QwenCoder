@@ -1,7 +1,0 @@
-{
-  "desc": "���ڱ��ļ��ĸ�����Ϣ����ο��ĵ� https://developers.weixin.qq.com/miniprogram/dev/framework/sitemap.html",
-  "rules": [{
-    "action": "allow",
-    "page": "*"
-  }]
-}

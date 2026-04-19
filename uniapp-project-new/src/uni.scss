@@ -1,0 +1,28 @@
+/* uni-app 全局 SCSS 变量 */
+
+// 主色
+$primary: #3b82f6;
+$primary-light: rgba(59, 130, 246, 0.15);
+
+// 涨跌色
+$color-up:   #0ecb81;
+$color-down: #f6465d;
+$color-gold: #f0b90b;
+
+// 背景色系
+$bg-deep:   #0a0b0d;
+$bg-card:   #13151a;
+$bg-panel:  #1e2329;
+$bg-input:  #2b3139;
+
+// 边线
+$border-color:       rgba(255, 255, 255, 0.06);
+$border-color-light: rgba(255, 255, 255, 0.04);
+$border-dark:        #2b3139;
+$border-darker:      #3d4451;
+
+// 文字色
+$text-primary:   #eaecef;
+$text-secondary: #848e9c;
+$text-hint:      #474d57;
+$text-white:     #ffffff;
