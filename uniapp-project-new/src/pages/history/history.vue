@@ -164,16 +164,22 @@ export default {
 </script>
 
 <style>
-/* ===== 历史记录页 ===== */
+/* ══════════════════════════════════════════
+   历史记录页  —  高质感暗色 v2
+   ══════════════════════════════════════════ */
+
 .container {
-  background: linear-gradient(180deg, #0a0a14 0%, #0f0f1a 100%);
+  background: #080a0f;
   min-height: 100vh;
-  padding-bottom: 40rpx;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 80rpx;
 }
 
+/* ── 顶部标题栏 ─────────────────────────── */
 .header-card {
-  background: linear-gradient(135deg, #0d0d22 0%, #151530 100%);
-  padding: 40rpx 30rpx 28rpx;
+  background: linear-gradient(180deg, #0d1117 0%, #111827 100%);
+  padding: 36rpx 32rpx 28rpx;
   border-bottom: 1rpx solid rgba(255,255,255,0.06);
   display: flex;
   align-items: center;
@@ -181,70 +187,79 @@ export default {
 }
 
 .header-title {
-  font-size: 40rpx;
-  font-weight: 700;
-  color: #ffffff;
+  font-size: 38rpx;
+  font-weight: 800;
+  color: #f1f5f9;
+  letter-spacing: 0.02em;
 }
 
 .header-count {
-  font-size: 24rpx;
-  color: #555577;
-  background: rgba(255,255,255,0.04);
+  font-size: 22rpx;
+  color: #475569;
+  background: rgba(255,255,255,0.05);
   padding: 6rpx 18rpx;
-  border-radius: 20rpx;
+  border-radius: 24rpx;
+  border: 1rpx solid rgba(255,255,255,0.07);
 }
 
+/* ── 筛选 Tab ────────────────────────────── */
 .filter-section {
   display: flex;
-  gap: 14rpx;
-  padding: 24rpx 24rpx 12rpx;
+  gap: 12rpx;
+  padding: 16rpx 20rpx 10rpx;
 }
 
 .filter-btn {
   flex: 1;
-  padding: 18rpx;
+  padding: 16rpx;
   text-align: center;
-  border-radius: 14rpx;
-  font-size: 28rpx;
+  border-radius: 16rpx;
+  font-size: 26rpx;
   font-weight: 600;
-  background: rgba(255,255,255,0.04);
-  color: #666688;
-  border: 1rpx solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.03);
+  color: #475569;
+  border: 1rpx solid rgba(255,255,255,0.05);
 }
 
 .filter-btn.active {
-  background: rgba(59,130,246,0.18);
-  color: #3b82f6;
-  border-color: rgba(59,130,246,0.4);
+  background: rgba(59,130,246,0.12);
+  color: #60a5fa;
+  border-color: rgba(59,130,246,0.3);
+  box-shadow: 0 0 12rpx rgba(59,130,246,0.12);
 }
 
 .filter-btn.active.open {
-  background: rgba(14,203,129,0.15);
-  color: #0ecb81;
-  border-color: rgba(14,203,129,0.35);
+  background: rgba(16,185,129,0.12);
+  color: #34d399;
+  border-color: rgba(16,185,129,0.3);
+  box-shadow: 0 0 12rpx rgba(16,185,129,0.12);
 }
 
 .filter-btn.active.close {
-  background: rgba(246,70,93,0.15);
-  color: #f6465d;
-  border-color: rgba(246,70,93,0.35);
+  background: rgba(239,68,68,0.12);
+  color: #f87171;
+  border-color: rgba(239,68,68,0.3);
+  box-shadow: 0 0 12rpx rgba(239,68,68,0.12);
 }
 
+/* ── 记录列表 ─────────────────────────────── */
 .history-list {
-  padding: 12rpx 24rpx 0;
+  flex: 1;
+  padding: 12rpx 20rpx 0;
   display: flex;
   flex-direction: column;
-  gap: 16rpx;
+  gap: 14rpx;
 }
 
 .history-card {
-  background: linear-gradient(135deg, #13132a 0%, #1b1b38 100%);
-  border-radius: 22rpx;
-  padding: 26rpx 28rpx;
-  border: 1rpx solid rgba(255,255,255,0.06);
-  box-shadow: 0 4rpx 20rpx rgba(0,0,0,0.35);
+  background: rgba(15,20,30,0.85);
+  border-radius: 24rpx;
+  padding: 24rpx 26rpx;
+  border: 1rpx solid rgba(255,255,255,0.07);
+  box-shadow: 0 4rpx 24rpx rgba(0,0,0,0.4), inset 0 1rpx 0 rgba(255,255,255,0.04);
 }
 
+/* ── 卡片头部 ─────────────────────────────── */
 .card-header {
   display: flex;
   align-items: flex-start;
@@ -260,20 +275,28 @@ export default {
 
 .type-badge {
   flex-shrink: 0;
-  width: 80rpx;
-  height: 80rpx;
+  width: 76rpx;
+  height: 76rpx;
   border-radius: 18rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 22rpx;
+  font-size: 21rpx;
   font-weight: 700;
 }
 
-.type-badge.long  { background: rgba(14,203,129,0.12); color: #0ecb81; }
-.type-badge.short { background: rgba(246,70,93,0.12);  color: #f6465d; }
+.type-badge.long  {
+  background: rgba(16,185,129,0.12);
+  color: #34d399;
+  border: 1rpx solid rgba(16,185,129,0.18);
+}
+.type-badge.short {
+  background: rgba(239,68,68,0.12);
+  color: #f87171;
+  border: 1rpx solid rgba(239,68,68,0.18);
+}
 
-.card-name-wrap { display: flex; flex-direction: column; gap: 4rpx; }
+.card-name-wrap { display: flex; flex-direction: column; gap: 6rpx; }
 
 .card-meta {
   display: flex;
@@ -282,15 +305,16 @@ export default {
 }
 
 .card-leverage {
-  font-size: 20rpx;
-  color: #f0b90b;
-  background: rgba(240,185,11,0.1);
+  font-size: 19rpx;
+  color: #fbbf24;
+  background: rgba(251,191,36,0.1);
   padding: 2rpx 10rpx;
   border-radius: 6rpx;
+  border: 1rpx solid rgba(251,191,36,0.2);
 }
 
-.card-name { font-size: 30rpx; font-weight: 700; color: #ffffff; }
-.card-code { font-size: 22rpx; color: #5555aa; letter-spacing: 0.04em; }
+.card-name { font-size: 28rpx; font-weight: 700; color: #f1f5f9; }
+.card-code { font-size: 20rpx; color: #334155; letter-spacing: 0.06em; text-transform: uppercase; }
 
 .card-right {
   display: flex;
@@ -299,47 +323,52 @@ export default {
   gap: 8rpx;
 }
 
-.card-amount { font-size: 32rpx; font-weight: 700; }
-.card-amount.amount-open   { color: #848e9c; }
-.card-amount.amount-profit { color: #0ecb81; }
-.card-amount.amount-loss   { color: #f6465d; }
+.card-amount { font-size: 30rpx; font-weight: 700; font-variant-numeric: tabular-nums; }
+.card-amount.amount-open   { color: #64748b; }
+.card-amount.amount-profit { color: #34d399; }
+.card-amount.amount-loss   { color: #f87171; }
 
-.card-time { font-size: 22rpx; color: #44446a; }
+.card-time { font-size: 20rpx; color: #334155; }
 
+/* ── 分割线 ─────────────────────────────── */
 .card-divider {
   height: 1rpx;
-  background: rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.05);
   margin: 18rpx 0;
 }
 
+/* ── 底部统计 ─────────────────────────────── */
 .card-stats { display: flex; }
 
 .card-stat {
   flex: 1;
   text-align: center;
   padding: 0 8rpx;
-  border-right: 1rpx solid rgba(255,255,255,0.06);
+  border-right: 1rpx solid rgba(255,255,255,0.05);
 }
 
 .card-stat:last-child { border-right: none; }
 
 .stat-label {
-  font-size: 20rpx;
-  color: #666688;
-  margin-bottom: 6rpx;
+  font-size: 18rpx;
+  color: #475569;
+  margin-bottom: 7rpx;
   display: block;
+  letter-spacing: 0.02em;
 }
 
 .stat-value {
-  font-size: 24rpx;
+  font-size: 22rpx;
   font-weight: 600;
-  color: #ddddff;
+  color: #e2e8f0;
   display: block;
+  font-variant-numeric: tabular-nums;
 }
 
-.stat-value.pnl-up   { color: #26c97a; }
-.stat-value.pnl-down { color: #f04c5a; }
+.stat-value.pnl-up   { color: #34d399; }
+.stat-value.pnl-down { color: #f87171; }
 
+/* ── 空状态 ─────────────────────────────── */
 .empty-wrap {
   display: flex;
   flex-direction: column;
@@ -349,6 +378,6 @@ export default {
 }
 
 .empty-icon { font-size: 80rpx; }
-.empty-text { font-size: 32rpx; color: #555577; font-weight: 600; }
-.empty-hint { font-size: 26rpx; color: #444466; }
+.empty-text { font-size: 30rpx; color: #334155; font-weight: 600; }
+.empty-hint { font-size: 24rpx; color: #1e293b; }
 </style>

@@ -3,9 +3,10 @@
 
     <!-- ① 顶部行情栏 -->
     <view class="top-bar">
-      <view class="top-coin">
+      <view class="top-coin" @tap="openSymbolModal">
         <text class="top-coin-name">{{ stock ? stock.code : '' }}</text>
         <text class="top-coin-sub">永续</text>
+        <text class="top-coin-arrow">▾</text>
       </view>
       <view class="top-change-only">
         <text :class="['top-change', priceChangePercent >= 0 ? 'up' : 'down']">
@@ -236,6 +237,9 @@
         <view :class="['pos-tab', posTab === 'orders' ? 'pos-tab-active' : '']" @tap="switchPosTab('orders')">
           当前委托 (0)
         </view>
+        <view :class="['pos-tab', posTab === 'history' ? 'pos-tab-active' : '']" @tap="switchPosTab('history')">
+          仓位历史
+        </view>
       </view>
 
       <!-- 持有仓位列表 -->
@@ -287,14 +291,14 @@
           <!-- 平仓操作栏 -->
           <view class="pos-close-bar">
             <view class="pos-close-info">
-              <text class="pos-close-fee-label">平仓手续费</text>
-              <text class="pos-close-fee-val">≈{{ item.closeFeeStr }} USDT</text>
+              <text class="pos-close-fee-label">可平数量</text>
+              <text class="pos-close-fee-val">{{ item.qtyStr }} {{ item.symbol }}</text>
             </view>
             <view
               :class="['pos-close-btn', item.tradeType === 'buy' ? 'close-sell' : 'close-buy']"
-              @tap="closePosition(item.code)"
+              @tap="openCloseModal(item)"
             >
-              {{ item.tradeType === 'buy' ? '平多（全部）' : '平空（全部）' }}
+              {{ item.tradeType === 'buy' ? '平多' : '平空' }}
             </view>
           </view>
         </view>
@@ -307,11 +311,222 @@
         </view>
       </view>
 
+      <!-- 仓位历史 -->
+      <view v-if="posTab === 'history'">
+        <view class="pos-empty" v-if="closedPositions.length === 0">
+          <text class="pos-empty-text">暂无平仓记录</text>
+        </view>
+        <view v-for="(item, idx) in closedPositions" :key="idx" class="closed-card">
+          <!-- 卡头：方向 + 合约 + 杠杆 + 平仓类型 -->
+          <view class="closed-card-top">
+            <view class="closed-card-left">
+              <view :class="['closed-side-tag', item.tradeType === 'buy' ? 'tag-long' : 'tag-short']">
+                {{ item.tradeType === 'buy' ? '买' : '卖' }}
+              </view>
+              <text class="closed-code">{{ item.code }}</text>
+              <text class="closed-perp">永续</text>
+              <view class="closed-lev-tag">全仓 {{ item.leverage }}x</view>
+            </view>
+            <text class="closed-type-label">{{ item.isPartial ? '部分平仓' : '完全平仓' }}</text>
+          </view>
+
+          <!-- 数据网格 -->
+          <view class="closed-grid">
+            <view class="closed-grid-item">
+              <text class="closed-grid-label">已实现盈亏 (USDT)</text>
+              <text :class="['closed-grid-val', item.pnl >= 0 ? 'up' : 'down']">{{ item.pnl >= 0 ? '' : '' }}{{ item.pnlStr }}</text>
+            </view>
+            <view class="closed-grid-item">
+              <text class="closed-grid-label">回报率</text>
+              <text :class="['closed-grid-val', item.pnl >= 0 ? 'up' : 'down']">{{ item.roiStr }}</text>
+            </view>
+            <view class="closed-grid-item align-right">
+              <text class="closed-grid-label">已平仓量 (USDT)</text>
+              <text class="closed-grid-val">{{ item.closeNotionalStr }}</text>
+            </view>
+
+            <view class="closed-grid-item">
+              <text class="closed-grid-label">开仓价格</text>
+              <text class="closed-grid-val neutral">{{ item.avgPriceStr }}</text>
+            </view>
+            <view class="closed-grid-item">
+              <text class="closed-grid-label">平仓均价</text>
+              <text class="closed-grid-val neutral">{{ item.closePriceStr }}</text>
+            </view>
+            <view class="closed-grid-item align-right">
+              <text class="closed-grid-label">最高 OI (USDT)</text>
+              <text class="closed-grid-val neutral">{{ item.closeNotionalStr }}</text>
+            </view>
+          </view>
+
+          <!-- 时间行 -->
+          <view class="closed-time-section">
+            <view class="closed-time-row">
+              <text class="closed-time-label">开仓时间</text>
+              <text class="closed-time-val">{{ item.openTime }}</text>
+            </view>
+            <view class="closed-time-row">
+              <text class="closed-time-label">全部平仓时间</text>
+              <text class="closed-time-val">{{ item.time }}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
     </view>
 
     <!-- 收起时的占位 -->
     <view class="kline-collapsed-placeholder"></view>
 
+  </view>
+
+  <!-- ══ 币种选择弹窗 ══ -->
+  <view class="sym-modal-mask" v-if="symbolModal.visible" @tap.self="symbolModal.visible = false">
+    <view class="sym-modal">
+      <!-- 标题 -->
+      <view class="sym-modal-header">
+        <text class="sym-modal-title">选择交易对</text>
+        <text class="sym-modal-close" @tap="symbolModal.visible = false">✕</text>
+      </view>
+      <!-- Tab 切换 -->
+      <view class="sym-tabs">
+        <view
+          :class="['sym-tab', symbolModal.tab === 'favorite' ? 'sym-tab-active' : '']"
+          @tap="switchSymTab('favorite')"
+        >自选</view>
+        <view
+          :class="['sym-tab', symbolModal.tab === 'all' ? 'sym-tab-active' : '']"
+          @tap="switchSymTab('all')"
+        >全部</view>
+      </view>
+      <!-- 搜索框 -->
+      <view class="sym-search-wrap">
+        <text class="sym-search-icon">🔍</text>
+        <input
+          class="sym-search-input"
+          type="text"
+          :value="symbolModal.query"
+          @input="onSymbolSearch"
+          placeholder="搜索币种，如 BTC"
+          placeholder-class="sym-search-placeholder"
+        />
+      </view>
+      <!-- 列表 -->
+      <scroll-view class="sym-list" scroll-y="true">
+        <view v-if="symbolModal.loading" class="sym-loading">
+          <text class="sym-loading-text">加载中...</text>
+        </view>
+        <view v-else-if="symbolModal.filteredList.length === 0" class="sym-empty">
+          <text class="sym-empty-text">未找到相关币种</text>
+        </view>
+        <view
+          v-else
+          v-for="item in symbolModal.filteredList"
+          :key="item.code"
+          :class="['sym-item', item.code === (stock ? stock.code : '') ? 'sym-item-active' : '']"
+          @tap="switchSymbol(item)"
+        >
+          <!-- 左：币种名 + 成交额 -->
+          <view class="sym-item-left">
+            <view class="sym-item-name-row">
+              <text class="sym-item-code">{{ item.code }}</text>
+              <text class="sym-item-tag" v-if="item.code === (stock ? stock.code : '')">当前</text>
+            </view>
+            <text class="sym-item-vol" v-if="symbolModal.tickerMap[item.code]">成交额 {{ symbolModal.tickerMap[item.code].quoteVolumeStr }}</text>
+          </view>
+          <!-- 右：价格 + 涨跌幅 -->
+          <view class="sym-item-right">
+            <template v-if="symbolModal.tickerMap[item.code]">
+              <text class="sym-item-price">{{ symbolModal.tickerMap[item.code].displayPrice }}</text>
+              <text
+                :class="['sym-item-pct', parseFloat(symbolModal.tickerMap[item.code].priceChangePercent) >= 0 ? 'sym-up' : 'sym-down']"
+              >{{ parseFloat(symbolModal.tickerMap[item.code].priceChangePercent) >= 0 ? '+' : '' }}{{ symbolModal.tickerMap[item.code].priceChangePercent }}%</text>
+            </template>
+            <text v-else class="sym-item-loading">--</text>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+
+  <!-- ══ 平仓弹窗 ══ -->
+  <view class="close-modal-mask" v-if="closeModal.visible" @tap.self="closeModal.visible = false">
+    <view class="close-modal">
+      <!-- 标题 -->
+      <view class="close-modal-header">
+        <text class="close-modal-title">{{ closeModal.tradeType === 'buy' ? '平多仓' : '平空仓' }}</text>
+        <text class="close-modal-sub">{{ closeModal.code }}</text>
+      </view>
+
+      <!-- 当前价 -->
+      <view class="close-modal-price-row">
+        <text class="close-modal-label">当前价格</text>
+        <text :class="['close-modal-price', priceChangePercent >= 0 ? 'up' : 'down']">{{ currentPrice }}</text>
+      </view>
+
+      <!-- 金额输入（USDT） -->
+      <view class="close-modal-input-section">
+        <view class="close-modal-input-header">
+          <text class="close-modal-label">平仓金额 (USDT)</text>
+          <text class="close-modal-max">最多 {{ closeModal.maxUsdtStr }} USDT</text>
+        </view>
+        <view class="close-modal-input-wrap">
+          <input
+            class="close-modal-input"
+            type="digit"
+            :value="closeModal.usdtInput"
+            @input="onCloseUsdtInput"
+            placeholder="输入 USDT 金额"
+          />
+          <text class="close-modal-input-unit">USDT</text>
+        </view>
+        <!-- 换算数量提示 -->
+        <text class="close-modal-qty-hint" v-if="closeModal.estQtyStr">≈ {{ closeModal.estQtyStr }} {{ closeModal.symbol }}</text>
+      </view>
+
+      <!-- 快捷比例 -->
+      <view class="close-modal-pct-row">
+        <view
+          v-for="(p, i) in [{pct:0.25,label:'25%'},{pct:0.5,label:'50%'},{pct:0.75,label:'75%'},{pct:1,label:'全仓'}]"
+          :key="i"
+          :class="['close-pct-btn', closeModal.pctIdx === i ? 'close-pct-active' : '']"
+          @tap="setClosePct(p.pct, i)"
+        >{{ p.label }}</view>
+      </view>
+
+      <!-- 预计结算 -->
+      <view class="close-modal-summary">
+        <view class="close-sum-row">
+          <text class="close-sum-label">平仓比例</text>
+          <text class="close-sum-val">{{ closeModal.pctDisplay }}%</text>
+        </view>
+        <view class="close-sum-row">
+          <text class="close-sum-label">预计盈亏</text>
+          <text :class="['close-sum-val', closeModal.estPnl >= 0 ? 'up' : 'down']">
+            {{ closeModal.estPnl >= 0 ? '+' : '-' }}{{ closeModal.estPnlStr }} USDT
+          </text>
+        </view>
+        <view class="close-sum-row">
+          <text class="close-sum-label">平仓手续费</text>
+          <text class="close-sum-val">{{ closeModal.estFeeStr }} USDT</text>
+        </view>
+        <view class="close-sum-row">
+          <text class="close-sum-label">返还保证金</text>
+          <text class="close-sum-val">{{ closeModal.estReturnStr }} USDT</text>
+        </view>
+      </view>
+
+      <!-- 操作按钮 -->
+      <view class="close-modal-actions">
+        <view class="close-modal-cancel" @tap="closeModal.visible = false">取消</view>
+        <view
+          :class="['close-modal-confirm', closeModal.tradeType === 'buy' ? 'confirm-sell' : 'confirm-buy', !closeModal.canClose ? 'confirm-disabled' : '']"
+          @tap="confirmClosePosition"
+        >
+          {{ closeModal.tradeType === 'buy' ? '确认平多' : '确认平空' }}
+        </view>
+      </view>
+    </view>
   </view>
 
   <!-- 收起状态：吸底栏 -->
@@ -322,7 +537,7 @@
 </template>
 
 <script>
-import { getStockByCode } from '../../utils/stock.js';
+import { getStockByCode, getAllStocks, getFavoriteStocks } from '../../utils/stock.js';
 import { getCurrentDateTime } from '../../utils/date.js';
 import binanceService from '../../utils/binanceService.js';
 import ChartHelper from '../../utils/chartHelper.js';
@@ -371,6 +586,29 @@ export default {
 
       posTab: 'holding',
       currentPositions: [],
+      closedPositions: [],
+
+      // 平仓弹窗状态
+      closeModal: {
+        visible: false,
+        code: '',
+        symbol: '',
+        tradeType: 'buy',
+        maxQty: 0,       // 最大可平数量（币种单位）
+        maxUsdt: 0,      // 最大可平金额 (USDT)
+        maxUsdtStr: '0', // 显示用
+        usdtInput: '',   // 用户输入的 USDT 金额
+        estQtyStr: '',   // 换算得到的币种数量提示
+        pctIdx: -1,
+        pctDisplay: '0.00',
+        avgPrice: 0,
+        margin: 0,
+        estPnl: 0,
+        estPnlStr: '0.00',
+        estFeeStr: '0.00',
+        estReturnStr: '0.00',
+        canClose: false,
+      },
 
       intervalList: [
         { val: '5m', label: '5m' },
@@ -383,6 +621,19 @@ export default {
         { val: '1w', label: '周' },
         { val: '1M', label: '月' },
       ],
+
+      // 币种选择弹窗
+      symbolModal: {
+        visible: false,
+        loading: false,
+        tab: 'favorite',  // 'favorite' | 'all'
+        query: '',
+        favoriteList: [], // 自选列表
+        allList: [],      // 完整列表
+        filteredList: [], // 当前展示（过滤后）
+        tickerMap: {},    // code → ticker（行情缓存）
+        tickerLoading: false,
+      },
     };
   },
 
@@ -391,6 +642,8 @@ export default {
     this.chartHelper = null;
     this.currentSymbol = null;
     this._winWidth = 375;
+    this._canvasHeight = 230; // canvas 初始估算值，会在首次绘制时动态更新
+    this._canvasSizeReady = false; // 是否已通过 SelectorQuery 获取到真实尺寸
     this._tickerHandler = null;
     this._klineHandler = null;
     this._klineClosedHandler = null;
@@ -471,6 +724,126 @@ export default {
   },
 
   methods: {
+    // ── 币种选择弹窗 ─────────────────────────────────
+    async openSymbolModal() {
+      const m = this.symbolModal;
+      m.query = '';
+      m.visible = true;
+
+      // 并行加载自选 + 全量（有缓存则跳过）
+      const needFav = m.favoriteList.length === 0;
+      const needAll = m.allList.length === 0;
+      if (!needFav && !needAll) {
+        this._applySymFilter();
+        return;
+      }
+
+      m.loading = true;
+      try {
+        const tasks = [];
+        if (needFav) tasks.push(getFavoriteStocks().then(l => { m.favoriteList = l; }));
+        if (needAll) tasks.push(getAllStocks().then(l => { m.allList = l; }));
+        await Promise.all(tasks);
+      } catch (e) {
+        // 容错：不清空已有数据
+      } finally {
+        m.loading = false;
+      }
+      this._applySymFilter();
+    },
+
+    switchSymTab(tab) {
+      this.symbolModal.tab = tab;
+      this.symbolModal.query = '';
+      this._applySymFilter();
+    },
+
+    _applySymFilter() {
+      const m = this.symbolModal;
+      const src = m.tab === 'favorite' ? m.favoriteList : m.allList;
+      const q = (m.query || '').trim().toUpperCase();
+      if (!q) {
+        m.filteredList = src;
+      } else {
+        m.filteredList = src.filter(item =>
+          item.code.toUpperCase().includes(q) || (item.symbol && item.symbol.toUpperCase().includes(q))
+        );
+      }
+      // 拉取当前列表的行情（未缓存的才请求）
+      this._fetchSymbolTickers(m.filteredList);
+    },
+
+    async _fetchSymbolTickers(list) {
+      if (!list || list.length === 0) return;
+      const m = this.symbolModal;
+      // 过滤出尚未缓存的
+      const uncached = list.filter(item => !m.tickerMap[item.code]);
+      if (uncached.length === 0) return;
+      if (m.tickerLoading) return;
+      m.tickerLoading = true;
+      try {
+        const codes = uncached.map(item => item.code);
+        const tickers = await binanceService.fetchTickersBatch(codes);
+        const map = Object.assign({}, m.tickerMap);
+        tickers.forEach(t => { map[t.symbol] = t; });
+        m.tickerMap = map;
+      } catch (e) {
+        // 拉取失败不阻断 UI
+      } finally {
+        m.tickerLoading = false;
+      }
+    },
+
+    onSymbolSearch(e) {
+      this.symbolModal.query = e.detail.value;
+      this._applySymFilter();
+    },
+
+    async switchSymbol(item) {
+      if (!item || item.code === (this.stock ? this.stock.code : '')) {
+        this.symbolModal.visible = false;
+        return;
+      }
+      this.symbolModal.visible = false;
+
+      // 停止旧的 WebSocket 和定时器
+      if (this._tickerHandler) binanceService.off('ticker', this._tickerHandler);
+      if (this._klineHandler) binanceService.off('kline', this._klineHandler);
+      if (this._klineClosedHandler) binanceService.off('klineClosed', this._klineClosedHandler);
+      binanceService.close();
+      if (this.orderBookTimer) { clearInterval(this.orderBookTimer); this.orderBookTimer = null; }
+
+      // 加载新币种
+      const newCode = item.code;
+      const newStock = await getStockByCode(newCode);
+
+      this.stock = newStock;
+      this.currentPrice = newStock ? newStock.currentPrice : 0;
+      this.priceChange = 0;
+      this.priceChangePercent = 0;
+      this.klineData = [];
+      this.klineInfo = null;
+      this.notionalInput = '';
+      this.pctIndex = -1;
+      this.currentSymbol = newCode;
+
+      // 重新拉行情 + K线
+      binanceService.fetch24hTicker(newCode).then((ticker) => {
+        this.currentPrice = ticker.displayPrice;
+        this.priceChange = ticker.priceChange;
+        this.priceChangePercent = parseFloat(ticker.priceChangePercent);
+        if (this.stock) this.stock = Object.assign({}, this.stock, { currentPrice: ticker.closePrice });
+        binanceService.setOpenPrice(newCode, ticker.closePrice - parseFloat(ticker.priceChange));
+        this.generateOrderBook();
+        this.calculateCost();
+      }).catch(() => {});
+
+      this.loadKlineData(newCode);
+      this.initWebSocket(newCode);
+      this.startOrderBookTimer();
+      this.refreshPositions(this.currentPrice);
+    },
+
     // ── 生成模拟盘口 ─────────────────────────────────
     generateOrderBook() {
       const price = parseFloat(this.currentPrice) || parseFloat(this.stock ? this.stock.currentPrice : 1) || 1;
@@ -518,14 +891,22 @@ export default {
         const info = uni.getWindowInfo ? uni.getWindowInfo() : null;
         if (info && info.windowWidth) {
           this._winWidth = info.windowWidth;
+          // rpx → px：屏幕宽度对应 750rpx，canvas 高度 460rpx
+          this._canvasHeight = Math.round(460 * info.windowWidth / 750);
         } else {
           uni.getSystemInfo({
-            success: (s) => { this._winWidth = s.windowWidth; }
+            success: (s) => {
+              this._winWidth = s.windowWidth;
+              this._canvasHeight = Math.round(460 * s.windowWidth / 750);
+            }
           });
         }
       } catch (e) {
         uni.getSystemInfo({
-          success: (s) => { this._winWidth = s.windowWidth; }
+          success: (s) => {
+            this._winWidth = s.windowWidth;
+            this._canvasHeight = Math.round(460 * s.windowWidth / 750);
+          }
         });
       }
     },
@@ -620,6 +1001,23 @@ export default {
       if (!klineData || klineData.length === 0) return;
       if (!this.chartHelper) this.initChart();
 
+      // 首次或尺寸未初始化时，异步查询 canvas 真实尺寸（flex 撑满时高度是动态的）
+      if (!this._canvasSizeReady) {
+        const query = uni.createSelectorQuery().in(this);
+        query.select('.kline-canvas').boundingClientRect((rect) => {
+          if (rect && rect.width > 0 && rect.height > 0) {
+            this._canvasHeight = rect.height;
+            this._winWidth = rect.width;
+            this._canvasSizeReady = true;
+          }
+          this._doDrawKLine(klineData);
+        }).exec();
+      } else {
+        this._doDrawKLine(klineData);
+      }
+    },
+
+    _doDrawKLine(klineData) {
       // 保留当前可见区间，仅追加新数据时滚动到最新
       const prevLen = this.chartHelper.data.length;
       const prevStart = this.chartHelper.visibleStart;
@@ -627,7 +1025,7 @@ export default {
 
       this.chartHelper.data = klineData;
       this.chartHelper.setInterval(this.klineInterval);
-      this.chartHelper.setDimensions(this._winWidth, 300);
+      this.chartHelper.setDimensions(this._winWidth, this._canvasHeight);
 
       // 如果是新数据加载（数据量大幅变化），重置到最新
       if (prevLen === 0 || Math.abs(klineData.length - prevLen) > 10) {
@@ -636,7 +1034,6 @@ export default {
         this.chartHelper.visibleStart = Math.max(0, klineData.length - initCount);
       } else if (klineData.length > prevLen) {
         // 正常追加，尾随最新
-        const added = klineData.length - prevLen;
         const atEnd = (prevStart + prevCount >= prevLen);
         if (atEnd) {
           this.chartHelper.visibleStart = Math.max(0, klineData.length - prevCount);
@@ -984,6 +1381,7 @@ export default {
           margin,
           tradeType,
           liqPrice,
+          buyTime: now, // 开仓时间
         });
       }
 
@@ -1055,6 +1453,8 @@ export default {
       this.klineExpanded = expanded;
       uni.setStorageSync('klineExpanded', expanded);
       if (expanded) {
+        // 展开时重新查询 canvas 尺寸（尺寸可能因 flex 变化而改变）
+        this._canvasSizeReady = false;
         setTimeout(() => { this.drawKLine(); }, 50);
       }
     },
@@ -1064,67 +1464,164 @@ export default {
       this.posTab = tab;
     },
 
-    closePosition(code) {
+    // ── 平仓弹窗 ──────────────────────────────────
+    openCloseModal(pos) {
+      const m = this.closeModal;
       const price = parseFloat(this.currentPrice) || 0;
+      m.code = pos.code;
+      m.symbol = pos.symbol;
+      m.tradeType = pos.tradeType;
+      m.maxQty = pos.quantity;
+      m.maxUsdt = parseFloat((pos.quantity * price).toFixed(2));
+      m.maxUsdtStr = m.maxUsdt.toFixed(2);
+      m.avgPrice = pos.quantity > 0 ? pos.cost / pos.quantity : 0;
+      m.margin = pos.margin || 0;
+      m.usdtInput = '';
+      m.estQtyStr = '';
+      m.pctIdx = -1;
+      m.pctDisplay = '0.00';
+      m.estPnl = 0;
+      m.estPnlStr = '0.00';
+      m.estFeeStr = '0.00';
+      m.estReturnStr = '0.00';
+      m.canClose = false;
+      m.visible = true;
+    },
+
+    onCloseUsdtInput(e) {
+      this.closeModal.usdtInput = e.detail.value;
+      this.closeModal.pctIdx = -1;
+      this._recalcCloseModal();
+    },
+
+    setClosePct(pct, idx) {
+      const usdt = parseFloat((this.closeModal.maxUsdt * pct).toFixed(2));
+      this.closeModal.usdtInput = String(usdt);
+      this.closeModal.pctIdx = idx;
+      this._recalcCloseModal();
+    },
+
+    _recalcCloseModal() {
+      const m = this.closeModal;
+      const price = parseFloat(this.currentPrice) || 0;
+      const closeUsdt = parseFloat(m.usdtInput) || 0;
+
+      if (closeUsdt <= 0 || closeUsdt > m.maxUsdt + 0.01 || price <= 0) {
+        m.estQtyStr = '';
+        m.pctDisplay = '0.00';
+        m.estPnl = 0;
+        m.estPnlStr = '0.00';
+        m.estFeeStr = '0.00';
+        m.estReturnStr = '0.00';
+        m.canClose = false;
+        return;
+      }
+
+      // USDT 金额 → 币种数量
+      const closeQty = closeUsdt / price;
+      const ratio = closeQty / m.maxQty;
+      const closedMargin = m.margin * ratio;
+      const fee = closeUsdt * TAKER_FEE_RATE;
+
+      // 盈亏 = (平仓价 - 开仓均价) × 数量（做多），做空反向
+      const pnl = m.tradeType === 'buy'
+        ? (price - m.avgPrice) * closeQty
+        : (m.avgPrice - price) * closeQty;
+      const pnlNet = pnl - fee;
+      const returnAmount = Math.max(0, closedMargin + pnlNet);
+
+      m.estQtyStr = closeQty.toFixed(6);
+      m.pctDisplay = (ratio * 100).toFixed(2);
+      m.estPnl = pnlNet;
+      m.estPnlStr = Math.abs(pnlNet).toFixed(2);
+      m.estFeeStr = fee.toFixed(2);
+      m.estReturnStr = returnAmount.toFixed(2);
+      m.canClose = true;
+    },
+
+    confirmClosePosition() {
+      const m = this.closeModal;
+      if (!m.canClose) return;
+
+      const price = parseFloat(this.currentPrice) || 0;
+      const closeUsdt = parseFloat(m.usdtInput) || 0;
+      if (closeUsdt <= 0 || price <= 0) return;
+
+      // USDT → 数量
+      const closeQty = closeUsdt / price;
+
       const app = getApp();
       let userData = app.getUserData();
-      const idx = userData.stocks.findIndex(s => s.code === code);
-      if (idx === -1 || !price) return;
+      const idx = userData.stocks.findIndex(s => s.code === m.code);
+      if (idx === -1) return;
 
       const pos = userData.stocks[idx];
-      const avgPrice = pos.quantity > 0 ? pos.cost / pos.quantity : 0;
-      const notional = pos.quantity * price;
-
+      const maxQty = pos.quantity;
+      const ratio = closeQty / maxQty;
+      const closedMargin = (pos.margin || 0) * ratio;
+      const notional = closeQty * price;
       const pnl = pos.tradeType === 'buy'
-        ? (price - avgPrice) * pos.quantity
-        : (avgPrice - price) * pos.quantity;
+        ? (price - m.avgPrice) * closeQty
+        : (m.avgPrice - price) * closeQty;
+      const fee = notional * TAKER_FEE_RATE;
+      const pnlNet = pnl - fee;
+      const returnAmount = Math.max(0, closedMargin + pnlNet);
 
-      const closeFee = notional * TAKER_FEE_RATE;
-      const returnAmount = Math.max(0, (pos.margin || 0) + pnl - closeFee);
-      const pnlNet = pnl - closeFee;
-      const pnlStr = (pnlNet >= 0 ? '+' : '') + pnlNet.toFixed(2);
-      const action = pos.tradeType === 'buy' ? '平多' : '平空';
+      const isFullClose = Math.abs(closeQty - maxQty) < 0.000001;
 
-      uni.showModal({
-        title: `确认${action}`,
-        content: `平仓价格：${price}\n数量：${pos.quantity.toFixed(6)} ${pos.symbol}\n净盈亏：${pnlStr} USDT\n平仓手续费：${closeFee.toFixed(2)} USDT\n返还保证金：${returnAmount.toFixed(2)} USDT`,
-        success: (res) => {
-          if (!res.confirm) return;
+      if (isFullClose) {
+        // 全部平仓：直接移除仓位
+        userData.stocks.splice(idx, 1);
+      } else {
+        // 部分平仓：更新剩余仓位
+        const remainQty = maxQty - closeQty;
+        const remainRatio = remainQty / maxQty;
+        userData.stocks[idx] = {
+          ...pos,
+          quantity: remainQty,
+          cost: pos.cost * remainRatio,
+          margin: (pos.margin || 0) * remainRatio,
+        };
+      }
 
-          userData.cash += returnAmount;
-          userData.stocks.splice(idx, 1);
+      userData.cash += returnAmount;
 
-          const now = getCurrentDateTime();
-          userData.history.unshift({
-            type: pos.tradeType === 'buy' ? 'close_buy' : 'close_sell',
-            code: pos.code,
-            name: pos.name,
-            symbol: pos.symbol,
-            quantity: pos.quantity,
-            price,
-            avgPrice,
-            pnl: pnlNet,
-            closeFee,
-            returnAmount,
-            leverage: pos.leverage,
-            time: now,
-          });
-
-          const totalMargin = userData.stocks.reduce((sum, s) => sum + (s.margin || 0), 0);
-          userData.totalAssets = userData.cash + totalMargin;
-          userData.profit = userData.totalAssets - 10000;
-
-          app.updateUserData(userData);
-
-          const latestUserData = app.getUserData();
-          this.userData = latestUserData;
-          this.cashDisplay = parseFloat(latestUserData.cash || 0).toFixed(2);
-          this.refreshPositions(price);
-
-          const toast = pnlNet >= 0 ? `盈利 +${pnlNet.toFixed(2)} USDT` : `亏损 ${pnlNet.toFixed(2)} USDT`;
-          uni.showToast({ title: toast, icon: pnlNet >= 0 ? 'success' : 'none', duration: 2000 });
-        },
+      const now = getCurrentDateTime();
+      userData.history.unshift({
+        type: pos.tradeType === 'buy' ? 'close_buy' : 'close_sell',
+        code: pos.code,
+        name: pos.name,
+        symbol: pos.symbol,
+        quantity: closeQty,
+        price,
+        avgPrice: m.avgPrice,
+        pnl: pnlNet,
+        closeFee: fee,
+        returnAmount,
+        leverage: pos.leverage,
+        isPartial: !isFullClose,
+        openTime: pos.buyTime || '--',
+        time: now,
       });
+
+      const totalMargin = userData.stocks.reduce((sum, s) => sum + (s.margin || 0), 0);
+      userData.totalAssets = userData.cash + totalMargin;
+      userData.profit = userData.totalAssets - 10000;
+
+      app.updateUserData(userData);
+
+      m.visible = false;
+
+      const latestUserData = app.getUserData();
+      this.userData = latestUserData;
+      this.cashDisplay = parseFloat(latestUserData.cash || 0).toFixed(2);
+      this.refreshPositions(price);
+
+      const label = isFullClose ? '全部平仓' : '部分平仓';
+      const toast = pnlNet >= 0
+        ? `${label} 盈利 +${pnlNet.toFixed(2)}`
+        : `${label} 亏损 ${pnlNet.toFixed(2)}`;
+      uni.showToast({ title: toast, icon: pnlNet >= 0 ? 'success' : 'none', duration: 2000 });
     },
 
     refreshPositions(latestPrice) {
@@ -1165,6 +1662,27 @@ export default {
         });
 
       this.currentPositions = positions;
+
+      // ── 加载平仓历史 ──────────────────────────────
+      const closeTypes = new Set(['close_buy', 'close_sell']);
+      const closeHistory = (userData.history || [])
+        .filter(h => closeTypes.has(h.type) && h.code === code)
+        .map(h => {
+          const margin = h.quantity * h.avgPrice / (h.leverage || 1);
+          const roi = margin > 0 ? (h.pnl / margin * 100) : 0;
+          return {
+            ...h,
+             tradeType: h.type === 'close_buy' ? 'buy' : 'sell',
+             pnlStr: (h.pnl >= 0 ? '+' : '') + Math.abs(h.pnl).toFixed(2),
+             roiStr: (roi >= 0 ? '+' : '') + roi.toFixed(2) + '%',
+             qtyStr: (h.quantity || 0).toFixed(6).replace(/\.?0+$/, m => m === '.' ? '' : m),
+             closeNotionalStr: ((h.quantity || 0) * (h.price || 0)).toFixed(2),
+             avgPriceStr: FormatData.formatPrice(h.avgPrice),
+             closePriceStr: FormatData.formatPrice(h.price),
+             openTime: h.openTime || '--',
+          };
+        });
+      this.closedPositions = closeHistory;
     },
   },
 };
@@ -1172,25 +1690,27 @@ export default {
 
 <style>
 /* ══════════════════════════════════════════════
-   交易页  —  Binance U本位合约 风格
+   交易页  —  高质感暗色 v2
    ══════════════════════════════════════════════ */
 
 .container {
-  background: #161a1e;
+  background: #080a0f;
   min-height: 100vh;
-  padding-bottom: 60rpx;
+  display: flex;
+  flex-direction: column;
 }
 
-.up   { color: #0ecb81; }
-.down { color: #f6465d; }
+.up   { color: #10b981; }
+.down { color: #ef4444; }
 
+/* ── 顶部栏 ─────────────────────────────────── */
 .top-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 20rpx 24rpx 18rpx;
-  background: #1e2329;
-  border-bottom: 1rpx solid #2b3139;
+  background: linear-gradient(180deg, #0d1117 0%, #111827 100%);
+  border-bottom: 1rpx solid rgba(255,255,255,0.06);
 }
 
 .top-coin {
@@ -1201,18 +1721,19 @@ export default {
 
 .top-coin-name {
   font-size: 34rpx;
-  font-weight: 700;
-  color: #eaecef;
+  font-weight: 800;
+  color: #f1f5f9;
   letter-spacing: 0.01em;
 }
 
 .top-coin-sub {
-  font-size: 19rpx;
-  color: #848e9c;
-  background: #2b3139;
+  font-size: 18rpx;
+  color: #64748b;
+  background: rgba(255,255,255,0.06);
   padding: 4rpx 12rpx;
-  border-radius: 4rpx;
-  letter-spacing: 0.02em;
+  border-radius: 6rpx;
+  letter-spacing: 0.04em;
+  border: 1rpx solid rgba(255,255,255,0.07);
 }
 
 .top-change-only {
@@ -1222,45 +1743,47 @@ export default {
 
 .top-change {
   font-size: 21rpx;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: 0.01em;
 }
 
+/* ── 主体：委托 + 盘口 ───────────────────────── */
 .main-body {
   display: flex;
   align-items: stretch;
-  background: #1e2329;
-  border-bottom: 1rpx solid #2b3139;
+  background: #0d1117;
+  border-bottom: 1rpx solid rgba(255,255,255,0.06);
 }
 
 .order-panel {
   flex: 1;
   padding: 16rpx 16rpx 20rpx;
-  border-right: 1rpx solid #2b3139;
+  border-right: 1rpx solid rgba(255,255,255,0.06);
   min-width: 0;
 }
 
 .trade-tabs {
   display: flex;
   margin-bottom: 16rpx;
-  background: #2b3139;
-  border-radius: 6rpx;
+  background: rgba(255,255,255,0.04);
+  border-radius: 10rpx;
   padding: 3rpx;
+  border: 1rpx solid rgba(255,255,255,0.05);
 }
 
 .trade-tab {
   flex: 1;
   padding: 12rpx 0;
   text-align: center;
-  font-size: 25rpx;
+  font-size: 24rpx;
   font-weight: 600;
-  color: #848e9c;
-  border-radius: 4rpx;
+  color: #64748b;
+  border-radius: 8rpx;
   letter-spacing: 0.02em;
 }
 
-.trade-tab.active-buy  { background: #0ecb81; color: #1e2329; }
-.trade-tab.active-sell { background: #f6465d; color: #ffffff; }
+.trade-tab.active-buy  { background: #10b981; color: #064e3b; }
+.trade-tab.active-sell { background: #ef4444; color: #ffffff; }
 
 .leverage-section { margin-bottom: 14rpx; }
 
@@ -1271,15 +1794,15 @@ export default {
   margin-bottom: 8rpx;
 }
 
-.leverage-label { font-size: 21rpx; color: #848e9c; font-weight: 500; }
-.leverage-hint  { font-size: 19rpx; color: #474d57; }
+.leverage-label { font-size: 20rpx; color: #64748b; font-weight: 500; }
+.leverage-hint  { font-size: 18rpx; color: #334155; }
 
 .lev-input-box {
   display: flex;
   align-items: center;
-  background: #2b3139;
-  border: 1rpx solid #3d4451;
-  border-radius: 6rpx;
+  background: rgba(255,255,255,0.04);
+  border: 1rpx solid rgba(255,255,255,0.08);
+  border-radius: 8rpx;
   padding: 12rpx 14rpx;
 }
 
@@ -1287,14 +1810,14 @@ export default {
   flex: 1;
   font-size: 30rpx;
   font-weight: 700;
-  color: #f0b90b;
+  color: #fbbf24;
   font-variant-numeric: tabular-nums;
 }
 
 .lev-input-unit {
-  font-size: 24rpx;
+  font-size: 22rpx;
   font-weight: 700;
-  color: #f0b90b;
+  color: #fbbf24;
   margin-left: 4rpx;
   flex-shrink: 0;
 }
@@ -1302,8 +1825,8 @@ export default {
 .input-row { margin-bottom: 12rpx; }
 
 .input-hint {
-  font-size: 19rpx;
-  color: #848e9c;
+  font-size: 18rpx;
+  color: #64748b;
   margin-bottom: 7rpx;
   display: block;
 }
@@ -1311,9 +1834,9 @@ export default {
 .input-box {
   display: flex;
   align-items: center;
-  background: #2b3139;
-  border: 1rpx solid #3d4451;
-  border-radius: 6rpx;
+  background: rgba(255,255,255,0.04);
+  border: 1rpx solid rgba(255,255,255,0.08);
+  border-radius: 8rpx;
   padding: 14rpx 14rpx;
 }
 
@@ -1321,12 +1844,12 @@ export default {
   flex: 1;
   font-size: 26rpx;
   font-weight: 600;
-  color: #eaecef;
+  color: #e2e8f0;
 }
 
 .input-unit {
-  font-size: 20rpx;
-  color: #848e9c;
+  font-size: 19rpx;
+  color: #64748b;
   font-weight: 600;
   margin-left: 8rpx;
   flex-shrink: 0;
@@ -1336,30 +1859,31 @@ export default {
   display: flex;
   align-items: center;
   margin-bottom: 14rpx;
-  background: #2b3139;
-  border-radius: 6rpx;
+  background: rgba(255,255,255,0.03);
+  border-radius: 8rpx;
   overflow: hidden;
+  border: 1rpx solid rgba(255,255,255,0.05);
 }
 
 .pct-btn {
   flex: 1;
-  font-size: 19rpx;
-  color: #848e9c;
+  font-size: 18rpx;
+  color: #64748b;
   padding: 8rpx 0;
   text-align: center;
   font-weight: 500;
 }
 
 .pct-btn.pct-active {
-  color: #f0b90b;
-  background: rgba(240,185,11,0.12);
+  color: #fbbf24;
+  background: rgba(251,191,36,0.1);
   font-weight: 700;
 }
 
 .pct-line {
   width: 1rpx;
   height: 28rpx;
-  background: #3d4451;
+  background: rgba(255,255,255,0.06);
   flex-shrink: 0;
 }
 
@@ -1370,14 +1894,15 @@ export default {
   margin-bottom: 12rpx;
 }
 
-.avail-label { font-size: 20rpx; color: #848e9c; }
-.avail-value { font-size: 20rpx; color: #eaecef; font-weight: 600; font-variant-numeric: tabular-nums; }
+.avail-label { font-size: 19rpx; color: #64748b; }
+.avail-value { font-size: 19rpx; color: #e2e8f0; font-weight: 600; font-variant-numeric: tabular-nums; }
 
 .summary-block {
-  background: #2b3139;
-  border-radius: 6rpx;
+  background: rgba(255,255,255,0.03);
+  border-radius: 8rpx;
   padding: 10rpx 12rpx;
   margin-bottom: 14rpx;
+  border: 1rpx solid rgba(255,255,255,0.05);
 }
 
 .summary-row {
@@ -1390,18 +1915,18 @@ export default {
 .summary-row.highlight {
   padding-top: 9rpx;
   margin-top: 4rpx;
-  border-top: 1rpx solid #3d4451;
+  border-top: 1rpx solid rgba(255,255,255,0.06);
 }
 
-.sum-label { font-size: 19rpx; color: #848e9c; }
-.sum-val { font-size: 20rpx; color: #eaecef; font-weight: 600; font-variant-numeric: tabular-nums; }
-.liq-price { font-size: 21rpx; font-weight: 700; }
+.sum-label { font-size: 18rpx; color: #64748b; }
+.sum-val { font-size: 19rpx; color: #e2e8f0; font-weight: 600; font-variant-numeric: tabular-nums; }
+.liq-price { font-size: 20rpx; font-weight: 700; }
 
 .submit-btn {
   width: 100%;
   margin-top: 2rpx;
   padding: 18rpx 0;
-  border-radius: 6rpx;
+  border-radius: 10rpx;
   font-size: 26rpx;
   font-weight: 700;
   text-align: center;
@@ -1409,9 +1934,9 @@ export default {
   letter-spacing: 0.04em;
 }
 
-.submit-btn.buy  { background: #0ecb81; color: #1e2329; }
-.submit-btn.sell { background: #f6465d; color: #ffffff; }
-.submit-btn[disabled] { opacity: 0.3; }
+.submit-btn.buy  { background: linear-gradient(135deg, #10b981, #059669); color: #ecfdf5; box-shadow: 0 4rpx 16rpx rgba(16,185,129,0.3); }
+.submit-btn.sell { background: linear-gradient(135deg, #ef4444, #dc2626); color: #ffffff; box-shadow: 0 4rpx 16rpx rgba(239,68,68,0.3); }
+.submit-btn[disabled] { opacity: 0.3; box-shadow: none; }
 
 /* ── 盘口面板 ──────────────────────────────────────── */
 .orderbook-panel {
@@ -1428,10 +1953,10 @@ export default {
   justify-content: space-between;
   margin-bottom: 6rpx;
   padding-bottom: 6rpx;
-  border-bottom: 1rpx solid #2b3139;
+  border-bottom: 1rpx solid rgba(255,255,255,0.05);
 }
 
-.ob-col-label       { font-size: 17rpx; color: #474d57; }
+.ob-col-label       { font-size: 17rpx; color: #334155; }
 .ob-col-label.right { text-align: right; }
 
 .ob-row {
@@ -1447,7 +1972,7 @@ export default {
   position: absolute;
   right: 0; top: 0; bottom: 0;
   width: 30%;
-  background: rgba(246,70,93,0.08);
+  background: rgba(239,68,68,0.07);
   border-radius: 2rpx;
 }
 
@@ -1456,24 +1981,24 @@ export default {
   position: absolute;
   right: 0; top: 0; bottom: 0;
   width: 30%;
-  background: rgba(14,203,129,0.08);
+  background: rgba(16,185,129,0.07);
   border-radius: 2rpx;
 }
 
 .ob-price {
-  font-size: 21rpx;
+  font-size: 20rpx;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   position: relative;
   z-index: 1;
 }
 
-.ask-price { color: #f6465d; }
-.bid-price { color: #0ecb81; }
+.ask-price { color: #f87171; }
+.bid-price { color: #34d399; }
 
 .ob-qty {
-  font-size: 19rpx;
-  color: #848e9c;
+  font-size: 18rpx;
+  color: #475569;
   font-variant-numeric: tabular-nums;
   position: relative;
   z-index: 1;
@@ -1481,15 +2006,15 @@ export default {
 
 .ob-mid {
   padding: 7rpx 2rpx;
-  border-top: 1rpx solid #2b3139;
-  border-bottom: 1rpx solid #2b3139;
+  border-top: 1rpx solid rgba(255,255,255,0.05);
+  border-bottom: 1rpx solid rgba(255,255,255,0.05);
   margin: 3rpx 0;
   background: rgba(255,255,255,0.02);
-  border-radius: 3rpx;
+  border-radius: 4rpx;
 }
 
 .ob-mid-price {
-  font-size: 28rpx;
+  font-size: 27rpx;
   font-weight: 800;
   letter-spacing: -0.01em;
   font-variant-numeric: tabular-nums;
@@ -1499,8 +2024,11 @@ export default {
 
 /* ── K线图区 ──────────────────────────────────────── */
 .kline-section {
-  background: #161a1e;
-  border-top: 1rpx solid #2b3139;
+  flex: 1;
+  background: #080a0f;
+  border-top: 1rpx solid rgba(255,255,255,0.05);
+  display: flex;
+  flex-direction: column;
 }
 
 .kline-header {
@@ -1508,8 +2036,8 @@ export default {
   align-items: center;
   justify-content: space-between;
   padding: 16rpx 20rpx;
-  border-bottom: 1rpx solid #2b3139;
-  background: #1e2329;
+  border-bottom: 1rpx solid rgba(255,255,255,0.05);
+  background: #0d1117;
 }
 
 .kline-header-left {
@@ -1518,8 +2046,8 @@ export default {
   gap: 14rpx;
 }
 
-.kline-header-title { font-size: 23rpx; font-weight: 600; color: #848e9c; }
-.kline-toggle-icon  { font-size: 22rpx; color: #474d57; }
+.kline-header-title { font-size: 22rpx; font-weight: 600; color: #64748b; }
+.kline-toggle-icon  { font-size: 22rpx; color: #334155; }
 
 .kline-bottom-bar {
   position: fixed;
@@ -1528,49 +2056,52 @@ export default {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 18rpx 24rpx;
-  background: #161a1e;
-  border-top: 1rpx solid #2b3139;
+  padding: 16rpx 24rpx env(safe-area-inset-bottom, 0);
+  min-height: 80rpx;
+  background: #0d1117;
+  border-top: 1rpx solid rgba(255,255,255,0.06);
+  box-shadow: 0 -8rpx 24rpx rgba(0,0,0,0.5);
 }
 
-.kline-bottom-title { font-size: 25rpx; font-weight: 600; color: #b7bdc6; }
-.kline-bottom-arrow { font-size: 20rpx; color: #474d57; }
+.kline-bottom-title { font-size: 25rpx; font-weight: 600; color: #94a3b8; }
+.kline-bottom-arrow { font-size: 20rpx; color: #334155; }
 
+/* 收起时指标栏占位，高度匹配吸底栏实际占用 */
 .kline-collapsed-placeholder {
-  height: 110rpx;
-  background: #161a1e;
+  height: 80rpx;
+  background: #080a0f;
 }
 
 /* ── 持仓区 ──────────────────────────────────────── */
 .position-section {
-  background: #161a1e;
-  border-top: 1rpx solid #2b3139;
+  background: #080a0f;
+  border-top: 1rpx solid rgba(255,255,255,0.05);
 }
 
 .pos-tabs {
   display: flex;
-  border-bottom: 1rpx solid #2b3139;
+  border-bottom: 1rpx solid rgba(255,255,255,0.05);
   padding: 0 16rpx;
-  background: #161a1e;
+  background: #0d1117;
 }
 
 .pos-tab {
   padding: 18rpx 16rpx 14rpx;
-  font-size: 23rpx;
-  color: #848e9c;
+  font-size: 22rpx;
+  color: #64748b;
   position: relative;
   font-weight: 500;
   margin-right: 4rpx;
 }
 
-.pos-tab-active { color: #eaecef; font-weight: 600; }
+.pos-tab-active { color: #e2e8f0; font-weight: 700; }
 
 .pos-tab-active::after {
   content: '';
   position: absolute;
   bottom: 0; left: 0; right: 0;
   height: 3rpx;
-  background: #f0b90b;
+  background: linear-gradient(90deg, #fbbf24, #f59e0b);
   border-radius: 2rpx 2rpx 0 0;
 }
 
@@ -1583,14 +2114,15 @@ export default {
   gap: 16rpx;
 }
 
-.pos-empty-text { font-size: 24rpx; color: #474d57; }
+.pos-empty-text { font-size: 24rpx; color: #334155; }
 
 .pos-card {
   margin: 12rpx 16rpx;
-  background: #2b3139;
-  border-radius: 8rpx;
+  background: rgba(15,20,30,0.9);
+  border-radius: 16rpx;
   overflow: hidden;
-  border: 1rpx solid #3d4451;
+  border: 1rpx solid rgba(255,255,255,0.07);
+  box-shadow: 0 4rpx 24rpx rgba(0,0,0,0.4);
 }
 
 .pos-card-top {
@@ -1598,19 +2130,20 @@ export default {
   justify-content: space-between;
   align-items: flex-start;
   padding: 16rpx 18rpx 12rpx;
-  border-bottom: 1rpx solid #3d4451;
+  border-bottom: 1rpx solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.02);
 }
 
 .pos-card-left { display: flex; align-items: center; gap: 10rpx; }
-.pos-code { font-size: 26rpx; font-weight: 700; color: #eaecef; }
+.pos-code { font-size: 26rpx; font-weight: 700; color: #e2e8f0; }
 
-.pos-side-badge { font-size: 18rpx; font-weight: 600; padding: 3rpx 10rpx; border-radius: 4rpx; }
-.badge-long { background: rgba(14,203,129,0.15); color: #0ecb81; }
-.badge-short { background: rgba(246,70,93,0.15); color: #f6465d; }
+.pos-side-badge { font-size: 18rpx; font-weight: 700; padding: 4rpx 12rpx; border-radius: 6rpx; }
+.badge-long  { background: rgba(16,185,129,0.15); color: #34d399; border: 1rpx solid rgba(16,185,129,0.2); }
+.badge-short { background: rgba(239,68,68,0.15); color: #f87171; border: 1rpx solid rgba(239,68,68,0.2); }
 
 .pos-card-right { display: flex; flex-direction: column; align-items: flex-end; gap: 3rpx; }
 .pos-pnl { font-size: 27rpx; font-weight: 700; font-variant-numeric: tabular-nums; }
-.pos-pnl-pct { font-size: 19rpx; font-variant-numeric: tabular-nums; }
+.pos-pnl-pct { font-size: 18rpx; font-variant-numeric: tabular-nums; }
 
 .pos-card-body {
   display: grid;
@@ -1619,24 +2152,24 @@ export default {
 }
 
 .pos-info-col { display: flex; flex-direction: column; gap: 5rpx; padding: 8rpx 0; }
-.pos-info-label { font-size: 18rpx; color: #848e9c; }
-.pos-info-val { font-size: 21rpx; color: #eaecef; font-weight: 600; font-variant-numeric: tabular-nums; }
+.pos-info-label { font-size: 17rpx; color: #64748b; }
+.pos-info-val { font-size: 20rpx; color: #e2e8f0; font-weight: 600; font-variant-numeric: tabular-nums; }
 
 .pos-close-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 12rpx 18rpx 16rpx;
-  border-top: 1rpx solid #3d4451;
+  border-top: 1rpx solid rgba(255,255,255,0.05);
 }
 
 .pos-close-info { display: flex; align-items: center; gap: 8rpx; }
-.pos-close-fee-label { font-size: 19rpx; color: #848e9c; }
-.pos-close-fee-val { font-size: 19rpx; color: #eaecef; font-weight: 600; font-variant-numeric: tabular-nums; }
+.pos-close-fee-label { font-size: 18rpx; color: #64748b; }
+.pos-close-fee-val { font-size: 18rpx; color: #e2e8f0; font-weight: 600; font-variant-numeric: tabular-nums; }
 
-.pos-close-btn { padding: 10rpx 28rpx; border-radius: 6rpx; font-size: 22rpx; font-weight: 600; letter-spacing: 0.02em; }
-.pos-close-btn.close-sell { background: rgba(246,70,93,0.15); color: #f6465d; border: 1rpx solid rgba(246,70,93,0.35); }
-.pos-close-btn.close-buy  { background: rgba(14,203,129,0.15); color: #0ecb81; border: 1rpx solid rgba(14,203,129,0.35); }
+.pos-close-btn { padding: 10rpx 28rpx; border-radius: 8rpx; font-size: 21rpx; font-weight: 700; letter-spacing: 0.02em; }
+.pos-close-btn.close-sell { background: rgba(239,68,68,0.12); color: #f87171; border: 1rpx solid rgba(239,68,68,0.3); }
+.pos-close-btn.close-buy  { background: rgba(16,185,129,0.12); color: #34d399; border: 1rpx solid rgba(16,185,129,0.3); }
 
 /* ── K线周期栏 ────────────────────────────────────── */
 .interval-bar {
@@ -1645,8 +2178,8 @@ export default {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
-  background: #1e2329;
-  border-bottom: 1rpx solid #2b3139;
+  background: #0d1117;
+  border-bottom: 1rpx solid rgba(255,255,255,0.05);
 }
 
 .interval-bar::-webkit-scrollbar { display: none; }
@@ -1655,36 +2188,37 @@ export default {
   flex-shrink: 0;
   padding: 7rpx 16rpx;
   background: transparent;
-  border-radius: 4rpx;
-  font-size: 22rpx;
+  border-radius: 6rpx;
+  font-size: 21rpx;
   font-weight: 500;
-  color: #848e9c;
+  color: #64748b;
   text-align: center;
 }
 
-.interval-btn.active { color: #f0b90b; background: rgba(240,185,11,0.1); font-weight: 600; }
+.interval-btn.active { color: #fbbf24; background: rgba(251,191,36,0.08); font-weight: 700; border: 1rpx solid rgba(251,191,36,0.2); }
 
 .ma-legend { display: flex; gap: 20rpx; padding: 4rpx 16rpx 6rpx; }
-.ma-item   { font-size: 19rpx; font-weight: 600; }
-.ma5       { color: #f0b90b; }
+.ma-item   { font-size: 18rpx; font-weight: 600; }
+.ma5       { color: #fbbf24; }
 .ma10      { color: #a78bfa; }
 
-.kline-wrap { background: #161a1e; width: 100%; position: relative; }
-.kline-canvas { width: 100%; height: 460rpx; display: block; }
+.kline-wrap { flex: 1; background: #080a0f; width: 100%; position: relative; display: flex; flex-direction: column; }
+.kline-canvas { flex: 1; width: 100%; min-height: 300rpx; display: block; }
 
 /* 缩放根数提示 */
 .kline-zoom-hint {
   position: absolute;
   top: 16rpx;
   right: 24rpx;
-  background: rgba(0,0,0,0.55);
+  background: rgba(0,0,0,0.7);
   border-radius: 8rpx;
   padding: 6rpx 16rpx;
   pointer-events: none;
+  border: 1rpx solid rgba(255,255,255,0.1);
 }
 .kline-zoom-hint-text {
   font-size: 20rpx;
-  color: #f0b90b;
+  color: #fbbf24;
   font-weight: 600;
 }
 
@@ -1692,33 +2226,34 @@ export default {
   display: flex;
   gap: 8rpx;
   padding: 10rpx 16rpx 12rpx;
-  background: #1e2329;
-  border-top: 1rpx solid #2b3139;
+  background: #0d1117;
+  border-top: 1rpx solid rgba(255,255,255,0.05);
 }
 
 .tool-btn {
   padding: 6rpx 16rpx;
-  background: #2b3139;
-  border-radius: 4rpx;
-  font-size: 20rpx;
+  background: rgba(255,255,255,0.04);
+  border-radius: 6rpx;
+  font-size: 19rpx;
   font-weight: 600;
-  color: #848e9c;
-  border: 1rpx solid #3d4451;
+  color: #64748b;
+  border: 1rpx solid rgba(255,255,255,0.07);
 }
 
-.tool-btn.active { color: #f0b90b; background: rgba(240,185,11,0.1); border-color: rgba(240,185,11,0.3); }
+.tool-btn.active { color: #fbbf24; background: rgba(251,191,36,0.08); border-color: rgba(251,191,36,0.25); }
 
 .kline-tooltip {
   position: absolute;
   top: 10rpx;
   left: 10rpx;
   z-index: 10;
-  background: rgba(15,17,22,0.88);
-  border-radius: 10rpx;
+  background: rgba(8,10,15,0.92);
+  border-radius: 12rpx;
   padding: 12rpx 16rpx;
   border: 1rpx solid rgba(255,255,255,0.1);
   pointer-events: none;
   min-width: 300rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0,0,0,0.6);
 }
 
 .tooltip-row-top {
@@ -1729,16 +2264,16 @@ export default {
 }
 
 .tooltip-date {
-  font-size: 20rpx;
-  color: #848e9c;
+  font-size: 19rpx;
+  color: #64748b;
 }
 
 .tooltip-chg {
-  font-size: 20rpx;
+  font-size: 19rpx;
   font-weight: 600;
 }
-.tooltip-chg.up   { color: #0ecb81; }
-.tooltip-chg.down { color: #f6465d; }
+.tooltip-chg.up   { color: #10b981; }
+.tooltip-chg.down { color: #ef4444; }
 
 .tooltip-grid {
   display: grid;
@@ -1747,9 +2282,527 @@ export default {
 }
 
 .tooltip-item  { text-align: center; }
-.tooltip-label { font-size: 16rpx; color: #474d57; display: block; margin-bottom: 4rpx; }
-.tooltip-val   { font-size: 18rpx; font-weight: 600; color: #eaecef; display: block; font-variant-numeric: tabular-nums; }
-.tooltip-val.up   { color: #0ecb81; }
-.tooltip-val.down { color: #f6465d; }
+.tooltip-label { font-size: 16rpx; color: #334155; display: block; margin-bottom: 4rpx; }
+.tooltip-val   { font-size: 17rpx; font-weight: 600; color: #e2e8f0; display: block; font-variant-numeric: tabular-nums; }
+.tooltip-val.up   { color: #10b981; }
+.tooltip-val.down { color: #ef4444; }
 .tooltip-val.vol  { color: #a78bfa; }
+
+/* ── 平仓弹窗 ──────────────────────────────────────── */
+.close-modal-mask {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(8rpx);
+  -webkit-backdrop-filter: blur(8rpx);
+  z-index: 500;
+  display: flex;
+  align-items: flex-end;
+}
+
+.close-modal {
+  width: 100%;
+  background: linear-gradient(180deg, #111827 0%, #0d1117 100%);
+  border-radius: 32rpx 32rpx 0 0;
+  padding: 32rpx 32rpx 60rpx;
+  border-top: 1rpx solid rgba(255,255,255,0.08);
+  box-shadow: 0 -20rpx 60rpx rgba(0,0,0,0.6);
+}
+
+.close-modal-header {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-bottom: 28rpx;
+}
+
+.close-modal-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #f1f5f9;
+}
+
+.close-modal-sub {
+  font-size: 21rpx;
+  color: #64748b;
+  background: rgba(255,255,255,0.05);
+  padding: 4rpx 14rpx;
+  border-radius: 8rpx;
+  border: 1rpx solid rgba(255,255,255,0.07);
+}
+
+.close-modal-price-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24rpx;
+  background: rgba(255,255,255,0.03);
+  border-radius: 12rpx;
+  padding: 16rpx 20rpx;
+  border: 1rpx solid rgba(255,255,255,0.05);
+}
+
+.close-modal-label {
+  font-size: 22rpx;
+  color: #64748b;
+}
+
+.close-modal-price {
+  font-size: 32rpx;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.close-modal-input-section {
+  margin-bottom: 20rpx;
+}
+
+.close-modal-input-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10rpx;
+}
+
+.close-modal-max {
+  font-size: 21rpx;
+  color: #475569;
+}
+
+.close-modal-qty-hint {
+  display: block;
+  font-size: 19rpx;
+  color: #64748b;
+  margin-top: 8rpx;
+  padding-left: 4rpx;
+}
+
+.close-modal-input-wrap {
+  display: flex;
+  align-items: center;
+  background: rgba(255,255,255,0.05);
+  border: 1rpx solid rgba(255,255,255,0.09);
+  border-radius: 12rpx;
+  padding: 20rpx 20rpx;
+}
+
+.close-modal-input {
+  flex: 1;
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.close-modal-input-unit {
+  font-size: 21rpx;
+  color: #64748b;
+  font-weight: 600;
+  margin-left: 10rpx;
+  flex-shrink: 0;
+}
+
+.close-modal-pct-row {
+  display: flex;
+  gap: 12rpx;
+  margin-bottom: 28rpx;
+}
+
+.close-pct-btn {
+  flex: 1;
+  text-align: center;
+  padding: 14rpx 0;
+  background: rgba(255,255,255,0.04);
+  border-radius: 10rpx;
+  font-size: 23rpx;
+  font-weight: 600;
+  color: #64748b;
+  border: 1rpx solid rgba(255,255,255,0.07);
+}
+
+.close-pct-btn.close-pct-active {
+  color: #fbbf24;
+  background: rgba(251,191,36,0.1);
+  border-color: rgba(251,191,36,0.3);
+}
+
+.close-modal-summary {
+  background: rgba(255,255,255,0.03);
+  border-radius: 14rpx;
+  padding: 16rpx 20rpx;
+  margin-bottom: 28rpx;
+  border: 1rpx solid rgba(255,255,255,0.06);
+}
+
+.close-sum-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8rpx 0;
+}
+
+.close-sum-label {
+  font-size: 21rpx;
+  color: #64748b;
+}
+
+.close-sum-val {
+  font-size: 23rpx;
+  font-weight: 600;
+  color: #e2e8f0;
+  font-variant-numeric: tabular-nums;
+}
+
+.close-modal-actions {
+  display: flex;
+  gap: 16rpx;
+}
+
+.close-modal-cancel {
+  flex: 1;
+  padding: 28rpx 0;
+  text-align: center;
+  background: rgba(255,255,255,0.05);
+  border-radius: 14rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #64748b;
+  border: 1rpx solid rgba(255,255,255,0.08);
+}
+
+.close-modal-confirm {
+  flex: 2;
+  padding: 28rpx 0;
+  text-align: center;
+  border-radius: 14rpx;
+  font-size: 28rpx;
+  font-weight: 700;
+}
+
+.confirm-sell { background: linear-gradient(135deg, #ef4444, #dc2626); color: #ffffff; box-shadow: 0 4rpx 16rpx rgba(239,68,68,0.3); }
+.confirm-buy  { background: linear-gradient(135deg, #10b981, #059669); color: #ecfdf5; box-shadow: 0 4rpx 16rpx rgba(16,185,129,0.3); }
+
+.confirm-disabled {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+/* ── 顶部币种点击效果 ──────────────────────────────── */
+.top-coin-arrow {
+  font-size: 20rpx;
+  color: #64748b;
+  margin-left: 4rpx;
+  line-height: 1;
+}
+
+/* ── 币种选择弹窗 ──────────────────────────────────── */
+.sym-modal-mask {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.72);
+  backdrop-filter: blur(10rpx);
+  -webkit-backdrop-filter: blur(10rpx);
+  z-index: 600;
+  display: flex;
+  align-items: flex-end;
+}
+
+.sym-modal {
+  width: 100%;
+  height: 72vh;
+  background: linear-gradient(180deg, #111827 0%, #0d1117 100%);
+  border-radius: 32rpx 32rpx 0 0;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 40rpx;
+  border-top: 1rpx solid rgba(255,255,255,0.08);
+  box-shadow: 0 -20rpx 60rpx rgba(0,0,0,0.7);
+}
+
+.sym-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 32rpx 32rpx 20rpx;
+  border-bottom: 1rpx solid rgba(255,255,255,0.06);
+  flex-shrink: 0;
+}
+
+.sym-modal-title {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #f1f5f9;
+}
+
+.sym-tabs {
+  display: flex;
+  flex-direction: row;
+  padding: 0 24rpx;
+  border-bottom: 1rpx solid rgba(255,255,255,0.06);
+  flex-shrink: 0;
+}
+
+.sym-tab {
+  flex: 1;
+  text-align: center;
+  font-size: 25rpx;
+  color: #64748b;
+  padding: 18rpx 0 14rpx;
+  border-bottom: 3rpx solid transparent;
+  font-weight: 500;
+}
+
+.sym-tab-active {
+  color: #fbbf24;
+  border-bottom-color: #fbbf24;
+  font-weight: 700;
+}
+
+.sym-modal-close {
+  font-size: 30rpx;
+  color: #475569;
+  padding: 8rpx 12rpx;
+}
+
+.sym-search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin: 18rpx 24rpx;
+  background: rgba(255,255,255,0.05);
+  border-radius: 20rpx;
+  padding: 16rpx 24rpx;
+  flex-shrink: 0;
+  border: 1rpx solid rgba(255,255,255,0.07);
+}
+
+.sym-search-icon {
+  font-size: 24rpx;
+  color: #64748b;
+}
+
+.sym-search-input {
+  flex: 1;
+  font-size: 25rpx;
+  color: #e2e8f0;
+  background: transparent;
+}
+
+.sym-search-placeholder {
+  color: #334155;
+}
+
+.sym-list {
+  flex: 1;
+  overflow: hidden;
+  padding: 0 8rpx;
+}
+
+.sym-loading,
+.sym-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 80rpx 0;
+}
+
+.sym-loading-text,
+.sym-empty-text {
+  font-size: 25rpx;
+  color: #475569;
+}
+
+.sym-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22rpx 24rpx;
+  border-bottom: 1rpx solid rgba(255,255,255,0.04);
+  transition: background 0.15s;
+}
+
+.sym-item:active {
+  background: rgba(255,255,255,0.04);
+}
+
+.sym-item-active {
+  background: rgba(251,191,36,0.05);
+}
+
+.sym-item-left {
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.sym-item-name-row {
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+}
+
+.sym-item-code {
+  font-size: 27rpx;
+  font-weight: 700;
+  color: #e2e8f0;
+  letter-spacing: 0.01em;
+}
+
+.sym-item-tag {
+  font-size: 17rpx;
+  color: #fbbf24;
+  background: rgba(251,191,36,0.12);
+  padding: 3rpx 10rpx;
+  border-radius: 8rpx;
+  border: 1rpx solid rgba(251,191,36,0.2);
+}
+
+.sym-item-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6rpx;
+  min-width: 150rpx;
+}
+
+.sym-item-price {
+  font-size: 25rpx;
+  font-weight: 600;
+  color: #e2e8f0;
+  font-variant-numeric: tabular-nums;
+}
+
+.sym-item-pct {
+  font-size: 21rpx;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.sym-up   { color: #34d399; }
+.sym-down { color: #f87171; }
+
+.sym-item-vol {
+  font-size: 18rpx;
+  color: #475569;
+}
+
+.sym-item-loading {
+  font-size: 21rpx;
+  color: #334155;
+}
+
+/* ══ 仓位历史 closed-card ══════════════════════ */
+.closed-card {
+  margin: 12rpx 16rpx;
+  background: rgba(15,20,30,0.92);
+  border-radius: 16rpx;
+  border: 1rpx solid rgba(255,255,255,0.07);
+  box-shadow: 0 4rpx 24rpx rgba(0,0,0,0.4);
+  overflow: hidden;
+}
+
+.closed-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16rpx 18rpx 12rpx;
+  border-bottom: 1rpx solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.025);
+}
+
+.closed-card-left {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  flex-wrap: wrap;
+}
+
+/* 买/卖 方向标签 */
+.closed-side-tag {
+  font-size: 17rpx;
+  font-weight: 700;
+  width: 36rpx;
+  height: 36rpx;
+  line-height: 36rpx;
+  text-align: center;
+  border-radius: 8rpx;
+}
+.tag-long  { background: #10b981; color: #fff; }
+.tag-short { background: #ef4444; color: #fff; }
+
+.closed-code {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #e2e8f0;
+  letter-spacing: 0.5rpx;
+}
+.closed-perp {
+  font-size: 19rpx;
+  color: #64748b;
+  margin-left: 2rpx;
+}
+.closed-lev-tag {
+  font-size: 18rpx;
+  color: #94a3b8;
+  background: rgba(255,255,255,0.06);
+  border: 1rpx solid rgba(255,255,255,0.1);
+  border-radius: 8rpx;
+  padding: 3rpx 10rpx;
+}
+.closed-type-label {
+  font-size: 20rpx;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+/* 数据网格 3列 */
+.closed-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0;
+  padding: 16rpx 18rpx 8rpx;
+  row-gap: 18rpx;
+}
+.closed-grid-item {
+  display: flex;
+  flex-direction: column;
+  gap: 5rpx;
+}
+.closed-grid-item.align-right {
+  align-items: flex-end;
+}
+.closed-grid-label {
+  font-size: 17rpx;
+  color: #475569;
+  line-height: 1.3;
+}
+.closed-grid-val {
+  font-size: 25rpx;
+  font-weight: 600;
+  color: #e2e8f0;
+  font-variant-numeric: tabular-nums;
+}
+.closed-grid-val.neutral { color: #cbd5e1; }
+
+/* 时间区 */
+.closed-time-section {
+  padding: 10rpx 18rpx 16rpx;
+  border-top: 1rpx solid rgba(255,255,255,0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+.closed-time-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.closed-time-label {
+  font-size: 19rpx;
+  color: #475569;
+}
+.closed-time-val {
+  font-size: 19rpx;
+  color: #94a3b8;
+  font-variant-numeric: tabular-nums;
+}
 </style>

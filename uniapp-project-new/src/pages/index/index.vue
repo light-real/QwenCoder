@@ -425,31 +425,33 @@ export default {
 
 <style>
 /* ══════════════════════════════════════════
-   行情首页  —  极简暗色  OKX / Bybit 风格
+   行情首页  —  高质感暗色  v2
    ══════════════════════════════════════════ */
 
 .container {
-  background: #0a0b0d;
+  background: #080a0f;
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 /* ── 顶部英雄区 ────────────────────────────── */
 .hero {
   position: relative;
   overflow: hidden;
-  padding: 48rpx 36rpx 52rpx;
-  background: #0d0f14;
-  border-bottom: 1rpx solid rgba(255,255,255,0.05);
+  padding: 52rpx 36rpx 56rpx;
+  background: linear-gradient(160deg, #0d1117 0%, #111827 50%, #0d1117 100%);
+  border-bottom: 1rpx solid rgba(255,255,255,0.06);
 }
 
 .hero-glow {
   position: absolute;
-  top: -80rpx;
-  right: -60rpx;
-  width: 340rpx;
-  height: 340rpx;
+  top: -100rpx;
+  right: -80rpx;
+  width: 420rpx;
+  height: 420rpx;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(59,130,246,0.12) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(59,130,246,0.18) 0%, rgba(139,92,246,0.06) 50%, transparent 70%);
   pointer-events: none;
 }
 
@@ -457,48 +459,52 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 44rpx;
+  margin-bottom: 48rpx;
 }
 
 .hero-logo {
   display: flex;
   align-items: center;
-  gap: 10rpx;
+  gap: 12rpx;
 }
 
 .logo-dot {
-  width: 14rpx;
-  height: 14rpx;
+  width: 16rpx;
+  height: 16rpx;
   border-radius: 50%;
-  background: #3b82f6;
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
   display: block;
-  box-shadow: 0 0 8rpx rgba(59,130,246,0.8);
+  box-shadow: 0 0 12rpx rgba(59,130,246,0.9), 0 0 24rpx rgba(59,130,246,0.4);
 }
 
 .logo-text {
   font-size: 30rpx;
-  font-weight: 700;
-  color: #e8eaf2;
-  letter-spacing: 0.04em;
+  font-weight: 800;
+  background: linear-gradient(90deg, #e2e8f0, #94a3b8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: 0.06em;
 }
 
 .hero-time {
-  font-size: 24rpx;
-  color: #3a3e50;
-  letter-spacing: 0.02em;
+  font-size: 22rpx;
+  color: #334155;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
 }
 
 .balance-block {
   display: flex;
   flex-direction: column;
-  gap: 10rpx;
+  gap: 12rpx;
 }
 
 .balance-label {
-  font-size: 24rpx;
-  color: #4a4f66;
-  letter-spacing: 0.04em;
+  font-size: 22rpx;
+  color: #475569;
+  letter-spacing: 0.06em;
   font-weight: 500;
+  text-transform: uppercase;
 }
 
 .balance-row {
@@ -507,75 +513,80 @@ export default {
 }
 
 .balance-num {
-  font-size: 72rpx;
+  font-size: 76rpx;
   font-weight: 800;
-  color: #ffffff;
-  letter-spacing: -0.03em;
+  color: #f8fafc;
+  letter-spacing: -0.04em;
   line-height: 1;
   font-variant-numeric: tabular-nums;
+  text-shadow: 0 2rpx 20rpx rgba(59,130,246,0.15);
 }
 
 /* ── Tab栏 ────────────────────────────── */
 .tab-bar {
   display: flex;
   align-items: center;
-  padding: 24rpx 24rpx 16rpx;
-  gap: 16rpx;
+  padding: 16rpx 20rpx 12rpx;
+  gap: 10rpx;
+  background: #080a0f;
 }
 
 .tab-item {
   display: flex;
   align-items: center;
   gap: 8rpx;
-  padding: 14rpx 28rpx;
-  background: rgba(255,255,255,0.04);
-  border-radius: 24rpx;
-  border: 1rpx solid rgba(255,255,255,0.06);
+  padding: 14rpx 26rpx;
+  background: rgba(255,255,255,0.03);
+  border-radius: 28rpx;
+  border: 1rpx solid rgba(255,255,255,0.05);
+  transition: all 0.2s;
 }
 
 .tab-item.active {
-  background: rgba(59,130,246,0.15);
-  border-color: rgba(59,130,246,0.3);
+  background: rgba(59,130,246,0.12);
+  border-color: rgba(59,130,246,0.35);
+  box-shadow: 0 0 16rpx rgba(59,130,246,0.15);
 }
 
 .tab-text {
-  font-size: 28rpx;
+  font-size: 26rpx;
   font-weight: 600;
-  color: #848e9c;
+  color: #64748b;
 }
 
 .tab-item.active .tab-text {
-  color: #3b82f6;
+  color: #60a5fa;
 }
 
 .tab-count {
-  font-size: 22rpx;
-  color: #5a5f70;
-  background: rgba(255,255,255,0.06);
+  font-size: 20rpx;
+  color: #475569;
+  background: rgba(255,255,255,0.05);
   padding: 2rpx 10rpx;
-  border-radius: 10rpx;
+  border-radius: 12rpx;
 }
 
 .tab-item.active .tab-count {
   background: rgba(59,130,246,0.2);
-  color: #3b82f6;
+  color: #93c5fd;
 }
 
 .tab-search {
   margin-left: auto;
   padding: 14rpx 20rpx;
-  background: rgba(255,255,255,0.04);
-  border-radius: 24rpx;
-  border: 1rpx solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.03);
+  border-radius: 28rpx;
+  border: 1rpx solid rgba(255,255,255,0.05);
 }
 
 .search-icon {
-  font-size: 28rpx;
+  font-size: 26rpx;
 }
 
 /* ── 行情列表区 ────────────────────────────── */
 .market-wrap {
-  padding: 0 24rpx 40rpx;
+  flex: 1;
+  padding: 12rpx 20rpx 120rpx;
 }
 
 .loading-wrap {
@@ -586,8 +597,8 @@ export default {
 }
 
 .loading-text {
-  font-size: 28rpx;
-  color: #5a5f70;
+  font-size: 26rpx;
+  color: #334155;
 }
 
 .empty-wrap {
@@ -603,23 +614,24 @@ export default {
 }
 
 .empty-text {
-  font-size: 32rpx;
-  color: #5a5f70;
+  font-size: 30rpx;
+  color: #334155;
   font-weight: 600;
 }
 
 .empty-hint {
-  font-size: 26rpx;
+  font-size: 24rpx;
   color: #3b82f6;
 }
 
 .coin-list {
   display: flex;
   flex-direction: column;
-  background: #13151a;
-  border-radius: 20rpx;
+  background: rgba(15,20,30,0.8);
+  border-radius: 24rpx;
   overflow: hidden;
   border: 1rpx solid rgba(255,255,255,0.06);
+  box-shadow: 0 8rpx 40rpx rgba(0,0,0,0.4), inset 0 1rpx 0 rgba(255,255,255,0.04);
 }
 
 .coin-row {
@@ -637,7 +649,7 @@ export default {
 }
 
 .coin-row:active {
-  background: rgba(255,255,255,0.03);
+  background: rgba(255,255,255,0.025);
 }
 
 .coin-avatar {
@@ -648,6 +660,7 @@ export default {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.3);
 }
 
 .coin-avatar.small {
@@ -668,20 +681,21 @@ export default {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 5rpx;
+  gap: 6rpx;
 }
 
 .coin-sym {
   font-size: 30rpx;
   font-weight: 700;
-  color: #e8eaf2;
+  color: #e2e8f0;
   letter-spacing: 0.02em;
 }
 
 .coin-pair {
-  font-size: 22rpx;
-  color: #3a3e50;
-  letter-spacing: 0.04em;
+  font-size: 20rpx;
+  color: #334155;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .coin-right {
@@ -692,43 +706,47 @@ export default {
 }
 
 .coin-price {
-  font-size: 32rpx;
+  font-size: 30rpx;
   font-weight: 700;
-  color: #e8eaf2;
+  color: #e2e8f0;
   letter-spacing: -0.01em;
   font-variant-numeric: tabular-nums;
 }
 
 .coin-badge {
-  font-size: 22rpx;
+  font-size: 21rpx;
   font-weight: 700;
-  padding: 4rpx 14rpx;
-  border-radius: 6rpx;
+  padding: 5rpx 14rpx;
+  border-radius: 8rpx;
   letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
 }
 
 .coin-badge.green {
-  color: #00c076;
-  background: rgba(0,192,118,0.1);
+  color: #34d399;
+  background: rgba(52,211,153,0.1);
+  border: 1rpx solid rgba(52,211,153,0.15);
 }
 
 .coin-badge.red {
-  color: #ff5353;
-  background: rgba(255,83,83,0.1);
+  color: #f87171;
+  background: rgba(248,113,113,0.1);
+  border: 1rpx solid rgba(248,113,113,0.15);
 }
 
 .coin-fav {
   padding: 10rpx;
-  margin-left: 8rpx;
+  margin-left: 4rpx;
 }
 
 .fav-star {
-  font-size: 36rpx;
-  color: #3a3e50;
+  font-size: 34rpx;
+  color: #1e293b;
 }
 
 .fav-star.active {
-  color: #f0b90b;
+  color: #fbbf24;
+  text-shadow: 0 0 10rpx rgba(251,191,36,0.5);
 }
 
 /* ── 搜索面板 ────────────────────────────── */
@@ -738,7 +756,9 @@ export default {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0,0,0,0.7);
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(8rpx);
+  -webkit-backdrop-filter: blur(8rpx);
   z-index: 1000;
 }
 
@@ -747,68 +767,71 @@ export default {
   top: 0;
   left: 0;
   right: 0;
-  background: #0d0f14;
-  border-radius: 0 0 32rpx 32rpx;
+  background: linear-gradient(180deg, #0d1117 0%, #111827 100%);
+  border-radius: 0 0 36rpx 36rpx;
   max-height: 80vh;
   display: flex;
   flex-direction: column;
+  border-bottom: 1rpx solid rgba(255,255,255,0.08);
+  box-shadow: 0 20rpx 60rpx rgba(0,0,0,0.6);
 }
 
 .search-header {
   display: flex;
   align-items: center;
-  padding: 24rpx;
+  padding: 28rpx 24rpx;
   gap: 16rpx;
-  border-bottom: 1rpx solid rgba(255,255,255,0.06);
+  border-bottom: 1rpx solid rgba(255,255,255,0.05);
 }
 
 .search-input-wrap {
   flex: 1;
   display: flex;
   align-items: center;
-  background: #1a1d24;
-  border-radius: 24rpx;
-  padding: 16rpx 24rpx;
+  background: rgba(255,255,255,0.05);
+  border-radius: 28rpx;
+  padding: 18rpx 24rpx;
   gap: 12rpx;
+  border: 1rpx solid rgba(255,255,255,0.07);
 }
 
 .search-icon-small {
-  font-size: 28rpx;
+  font-size: 26rpx;
 }
 
 .search-input {
   flex: 1;
-  font-size: 30rpx;
-  color: #e8eaf2;
+  font-size: 28rpx;
+  color: #e2e8f0;
 }
 
 .search-placeholder {
-  color: #5a5f70;
+  color: #334155;
 }
 
 .search-clear {
-  font-size: 28rpx;
-  color: #5a5f70;
+  font-size: 26rpx;
+  color: #475569;
   padding: 8rpx;
 }
 
 .search-cancel {
   font-size: 28rpx;
-  color: #3b82f6;
+  color: #60a5fa;
   font-weight: 600;
 }
 
 .search-result {
   flex: 1;
   overflow-y: auto;
-  padding: 16rpx 24rpx;
+  padding: 12rpx 20rpx;
 }
 
 .search-row {
   display: flex;
   align-items: center;
   gap: 16rpx;
-  padding: 20rpx 16rpx;
+  padding: 22rpx 16rpx;
   border-radius: 16rpx;
 }
 
@@ -820,18 +843,19 @@ export default {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 4rpx;
+  gap: 5rpx;
 }
 
 .search-sym {
-  font-size: 30rpx;
-  font-weight: 600;
-  color: #e8eaf2;
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #e2e8f0;
 }
 
 .search-code {
-  font-size: 22rpx;
-  color: #5a5f70;
+  font-size: 20rpx;
+  color: #334155;
+  letter-spacing: 0.04em;
 }
 
 .search-fav {
@@ -845,7 +869,7 @@ export default {
 }
 
 .search-empty-text {
-  font-size: 28rpx;
-  color: #5a5f70;
+  font-size: 26rpx;
+  color: #334155;
 }
 </style>
