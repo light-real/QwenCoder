@@ -257,7 +257,7 @@
             </view>
             <view class="pos-card-right">
               <text :class="['pos-pnl', item.pnl >= 0 ? 'up' : 'down']">
-                {{ item.pnl >= 0 ? '+' : '' }}{{ item.pnlStr }} USDT
+                {{ item.pnl >= 0 ? '+' : '-' }}{{ item.pnlStr }} USDT
               </text>
               <text :class="['pos-pnl-pct', item.pnl >= 0 ? 'up' : 'down']">({{ item.pnlPctStr }}%)</text>
             </view>
@@ -334,7 +334,7 @@
           <view class="closed-grid">
             <view class="closed-grid-item">
               <text class="closed-grid-label">已实现盈亏 (USDT)</text>
-              <text :class="['closed-grid-val', item.pnl >= 0 ? 'up' : 'down']">{{ item.pnl >= 0 ? '' : '' }}{{ item.pnlStr }}</text>
+              <text :class="['closed-grid-val', item.pnl >= 0 ? 'up' : 'down']">{{ item.pnl >= 0 ? '+' : '-' }}{{ item.pnlStr }}</text>
             </view>
             <view class="closed-grid-item">
               <text class="closed-grid-label">回报率</text>
@@ -542,9 +542,7 @@ import { getCurrentDateTime } from '../../utils/date.js';
 import binanceService from '../../utils/binanceService.js';
 import ChartHelper from '../../utils/chartHelper.js';
 import FormatData from '../../utils/formatData.js';
-
-const TAKER_FEE_RATE = 0.001;
-const MAINT_MARGIN_RATE = 0.005;
+import { checkAndLiquidate, TAKER_FEE_RATE, MAINT_MARGIN_RATE } from '../../utils/liquidation.js';
 
 export default {
   data() {
@@ -1283,18 +1281,18 @@ export default {
       const qty = notional / currentPrice;
       const fee = notional * TAKER_FEE_RATE;
 
-      const cash = userData.cash || 0;
-      const lossRatio = cash / notional;
+      // 强平价：基于该笔仓位自身的杠杆和维持保证金率计算
+      // 做多：跌到该价位时，浮亏 = 保证金 × (1 - 维持保证金率)，即将触发强平
+      // 做空：涨到该价位时，同理触发强平
       const priceDec = currentPrice >= 1000 ? 2 : currentPrice >= 1 ? 4 : 6;
+      const liqRatio = (1 - MAINT_MARGIN_RATE) / leverage;
       let liqPrice;
       if (tradeType === 'buy') {
-        liqPrice = currentPrice * (1 - lossRatio + MAINT_MARGIN_RATE);
+        liqPrice = currentPrice * (1 - liqRatio);
       } else {
-        liqPrice = currentPrice * (1 + lossRatio - MAINT_MARGIN_RATE);
+        liqPrice = currentPrice * (1 + liqRatio);
       }
-      const liqPriceStr = (tradeType === 'buy' && liqPrice <= 0)
-        ? '不会强平'
-        : liqPrice > 0 ? liqPrice.toFixed(priceDec) : '--';
+      const liqPriceStr = liqPrice > 0 ? liqPrice.toFixed(priceDec) : '--';
 
       const leverageRisk = leverage >= 50 ? 'extreme'
         : leverage >= 20 ? 'high'
@@ -1629,11 +1627,29 @@ export default {
       const price = parseFloat(latestPrice) || parseFloat(this.currentPrice) || 0;
       if (!price) return;
       const app = getApp();
-      const userData = app.getUserData();
+      let userData = app.getUserData();
       const code = this.stock.code;
       if (!code || !userData || !userData.stocks) {
         this.currentPositions = [];
         return;
+      }
+
+      // ── 强平检测：只对当前币种（有实时行情）的持仓做检测，避免用陈旧价格误判 ──
+      const { userData: nextUserData, liquidatedList } = checkAndLiquidate(
+        userData,
+        (s) => (s.code === code ? price : null)
+      );
+      userData = nextUserData;
+
+      if (liquidatedList.length > 0) {
+        app.updateUserData(userData);
+        const symbols = liquidatedList.map(l => l.symbol).join('、');
+        uni.showModal({
+          title: '⚠️ 强制平仓',
+          content: `${symbols} 仓位保证金已亏损殆尽，已被强制平仓`,
+          showCancel: false,
+          confirmText: '知道了',
+        });
       }
 
       const positions = userData.stocks
@@ -1655,25 +1671,27 @@ export default {
             marginStr: margin.toFixed(2),
             notionalStr: notional.toFixed(2),
             pnl,
-            pnlStr: Math.abs(pnl).toFixed(2),
+            pnlStr: Math.abs(pnl).toFixed(2), // 不含符号，模板里加
             pnlPctStr: (pnl >= 0 ? '+' : '-') + Math.abs(pnlPct).toFixed(2),
             closeFeeStr: closeFee.toFixed(2),
           };
         });
 
       this.currentPositions = positions;
+      this.userData = userData;
+      this.cashDisplay = parseFloat(userData.cash || 0).toFixed(2);
 
       // ── 加载平仓历史 ──────────────────────────────
       const closeTypes = new Set(['close_buy', 'close_sell']);
       const closeHistory = (userData.history || [])
-        .filter(h => closeTypes.has(h.type) && h.code === code)
+        .filter(h => closeTypes.has(h.type))
         .map(h => {
           const margin = h.quantity * h.avgPrice / (h.leverage || 1);
           const roi = margin > 0 ? (h.pnl / margin * 100) : 0;
           return {
             ...h,
              tradeType: h.type === 'close_buy' ? 'buy' : 'sell',
-             pnlStr: (h.pnl >= 0 ? '+' : '') + Math.abs(h.pnl).toFixed(2),
+             pnlStr: Math.abs(h.pnl).toFixed(2),
              roiStr: (roi >= 0 ? '+' : '') + roi.toFixed(2) + '%',
              qtyStr: (h.quantity || 0).toFixed(6).replace(/\.?0+$/, m => m === '.' ? '' : m),
              closeNotionalStr: ((h.quantity || 0) * (h.price || 0)).toFixed(2),

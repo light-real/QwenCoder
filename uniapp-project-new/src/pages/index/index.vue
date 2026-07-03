@@ -135,6 +135,7 @@
 import { getAllStocks, getFavorites, addFavorite, removeFavorite, isFavorite as checkFavorite } from '../../utils/stock.js';
 import { getCurrentTime } from '../../utils/date.js';
 import binanceService from '../../utils/binanceService.js';
+import { checkAndLiquidate } from '../../utils/liquidation.js';
 
 export default {
   data() {
@@ -363,9 +364,28 @@ export default {
 
     _updateTotalAssets() {
       const app = getApp();
-      const userData = app.getUserData();
+      let userData = app.getUserData();
       if (!userData) return;
       const priceMap = this._priceMap || {};
+
+      // ── 强平检测：只对已订阅到实时行情（priceMap 中有数据）的仓位做检测 ──
+      const { userData: nextUserData, liquidatedList } = checkAndLiquidate(
+        userData,
+        (s) => (priceMap[s.code] ? priceMap[s.code].currentPrice : null)
+      );
+      userData = nextUserData;
+
+      if (liquidatedList.length > 0) {
+        app.updateUserData(userData);
+        const symbols = liquidatedList.map(l => l.symbol).join('、');
+        uni.showModal({
+          title: '⚠️ 强制平仓',
+          content: `${symbols} 仓位保证金已亏损殆尽，已被强制平仓`,
+          showCancel: false,
+          confirmText: '知道了',
+        });
+      }
+
       let positionValue = 0;
       (userData.stocks || []).forEach(function(s) {
         const markPrice = (priceMap[s.code] && priceMap[s.code].currentPrice) || s.currentPrice || 0;

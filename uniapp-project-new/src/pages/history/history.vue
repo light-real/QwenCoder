@@ -22,6 +22,7 @@
           <view class="card-header">
             <view class="card-left">
               <view :class="['type-badge', item.typeClass]">{{ item.typeLabel }}</view>
+              <view v-if="item.isLiquidation" class="liq-badge">爆仓</view>
               <view class="card-name-wrap">
                 <text class="card-name">{{ item.name }}</text>
                 <view class="card-meta">
@@ -110,6 +111,7 @@ export default {
       const type = item.type;
       const typeLabel = type === 'buy' ? '开多'
         : type === 'sell' ? '开空'
+        : item.isLiquidation ? (type === 'close_buy' ? '强平多' : '强平空')
         : type === 'close_buy' ? '平多'
         : '平空';
       const typeClass = (type === 'buy' || type === 'close_sell') ? 'long' : 'short';
@@ -294,6 +296,17 @@ export default {
   background: rgba(239,68,68,0.12);
   color: #f87171;
   border: 1rpx solid rgba(239,68,68,0.18);
+}
+
+.liq-badge {
+  flex-shrink: 0;
+  font-size: 19rpx;
+  font-weight: 700;
+  color: #fbbf24;
+  background: rgba(251,191,36,0.12);
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+  border: 1rpx solid rgba(251,191,36,0.25);
 }
 
 .card-name-wrap { display: flex; flex-direction: column; gap: 6rpx; }
