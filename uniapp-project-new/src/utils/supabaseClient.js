@@ -46,20 +46,37 @@ import { createClient } from '@supabase/supabase-js';
 
 // Capacitor WebView 和浏览器环境都支持原生 fetch，直接使用
 // uni.request 会把 JSON body 转成 form 格式，导致 Supabase 认证失败
+// Supabase session 存储适配器
+// 注意：Supabase 内部把 session 当 JSON 字符串读写，必须保证 get/set 都是字符串
+const uniStorage = {
+  getItem: (key) => {
+    try {
+      const val = uni.getStorageSync(key);
+      if (val === null || val === undefined || val === '') return null;
+      // 如果是对象（uni 自动反序列化了），转回字符串供 Supabase 解析
+      if (typeof val === 'object') return JSON.stringify(val);
+      return val;
+    } catch {
+      return null;
+    }
+  },
+  setItem: (key, val) => {
+    try {
+      // 始终存字符串，防止 uni 自动序列化破坏格式
+      uni.setStorageSync(key, typeof val === 'string' ? val : JSON.stringify(val));
+    } catch {}
+  },
+  removeItem: (key) => {
+    try { uni.removeStorageSync(key); } catch {}
+  },
+};
+
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
   auth: {
     persistSession: true,
-    storage: {
-      getItem: (key) => {
-        try { return uni.getStorageSync(key) || null; } catch { return null; }
-      },
-      setItem: (key, val) => {
-        try { uni.setStorageSync(key, val); } catch {}
-      },
-      removeItem: (key) => {
-        try { uni.removeStorageSync(key); } catch {}
-      },
-    },
+    autoRefreshToken: true,
+    detectSessionInUrl: false,
+    storage: uniStorage,
   },
 });
 

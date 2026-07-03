@@ -5,6 +5,14 @@ export default {
   async onLaunch() {
     // 初始化：检查登录态，云端/本地数据同步
     await userService.initialize();
+
+    // 自动登录判断：已有有效 session 或选择了游客模式，直接进首页
+    const user = await userService.getUser();
+    const skipped = uni.getStorageSync('skipLogin');
+    if (user || skipped) {
+      uni.reLaunch({ url: '/pages/index/index' });
+    }
+    // 否则留在 auth 页（pages.json 首页），用户手动登录
   },
 
   methods: {

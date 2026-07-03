@@ -3,18 +3,17 @@
  * uni-app 版本：wx.request → uni.request
  */
 
-// H5 开发环境（Vite devServer）走代理；Capacitor App 或生产环境直接请求 Binance
-// Capacitor App 的 hostname 是 localhost，但 window.Capacitor 存在
+// Capacitor App（打包后）直接请求 Binance；
+// 本地 H5 开发（localhost / 127.0.0.1，任意端口）走 Vite/HBuilderX 代理解决 CORS。
 const IS_CAPACITOR = typeof window !== 'undefined' && !!(window.Capacitor);
-const IS_H5_DEV = !IS_CAPACITOR &&
+const IS_LOCAL_DEV = !IS_CAPACITOR &&
   typeof window !== 'undefined' &&
-  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') &&
-  typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.DEV;
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
-const BASE = IS_H5_DEV
+const BASE = IS_LOCAL_DEV
   ? '/fapi/v1'
   : 'https://fapi.binance.com/fapi/v1';
-const EXCHANGE_INFO_URL = IS_H5_DEV
+const EXCHANGE_INFO_URL = IS_LOCAL_DEV
   ? '/fapi/v1/exchangeInfo'
   : 'https://fapi.binance.com/fapi/v1/exchangeInfo';
 
@@ -156,7 +155,12 @@ class BinanceService {
     });
   }
 
-  // ─── REST: 批量查询多个币种 24h 行情 ─────────────────────────
+  // ─── REST: 公开批量查询（供弹窗等外部使用）────────────────────
+  fetchTickersBatch(symbols) {
+    return this._fetchAllTickers(symbols);
+  }
+
+  // ─── REST: 批量查询多个币种 24h 行情（内部）──────────────────
   _fetchAllTickers(symbols) {
     const self = this;
     return new Promise(function(resolve, reject) {
@@ -334,6 +338,15 @@ class BinanceService {
 function parseTicker(d) {
   const price = parseFloat(d.lastPrice);
   const priceDec = price >= 1000 ? 2 : price >= 1 ? 4 : 6;
+  const qv = parseFloat(d.quoteVolume) || 0;
+  let quoteVolumeStr;
+  if (qv >= 1e9) {
+    quoteVolumeStr = (qv / 1e8).toFixed(1) + '亿';
+  } else if (qv >= 1e7) {
+    quoteVolumeStr = (qv / 1e4).toFixed(1) + '万';
+  } else {
+    quoteVolumeStr = qv.toFixed(0);
+  }
   return {
     symbol: d.symbol,
     closePrice: price,
@@ -343,6 +356,8 @@ function parseTicker(d) {
     high: parseFloat(d.highPrice),
     low: parseFloat(d.lowPrice),
     volume: parseFloat(d.volume),
+    quoteVolume: qv,
+    quoteVolumeStr,
   };
 }
 
